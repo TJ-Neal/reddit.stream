@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  neal.reddit.infrastructure.reader:
+    image: ${DOCKER_REGISTRY-}nealredditinfrastructurereader
+    build:
+      context: .
+      dockerfile: Infrastructure/Neal.Reddit.Infrastructure.Reader/Dockerfile

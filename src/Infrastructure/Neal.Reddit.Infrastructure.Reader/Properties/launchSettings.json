@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Neal.Reddit.Infrastructure.Reader": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
