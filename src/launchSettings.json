@@ -1,11 +1,13 @@
 {
-  "profiles": {
-    "Docker Compose": {
-      "commandName": "DockerCompose",
-      "commandVersion": "1.0",
-      "serviceActions": {
-        "neal.reddit.infrastructure.reader": "StartDebugging"
-      }
+    "profiles": {
+        "all": {
+            "commandName": "DockerCompose",
+            "commandVersion": "1.0",
+            "composeProfile": {
+                "includes": [
+                    "all"
+                ]
+            }
+        }
     }
-  }
 }
