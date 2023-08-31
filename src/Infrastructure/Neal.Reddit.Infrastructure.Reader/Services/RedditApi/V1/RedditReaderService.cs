@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
+using Neal.Reddit.Client.Reddit.Wrappers;
 using Newtonsoft.Json;
 using Reddit;
 using Reddit.Controllers.EventArgs;
@@ -10,8 +11,6 @@ namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi.V1;
 public class RedditReaderService : BackgroundService
 {
     private readonly ILogger<RedditReaderService> _logger;
-
-    private readonly IHttpClientFactory clientFactory;
 
     public RedditReaderService(ILogger<RedditReaderService> logger)
     {
@@ -24,7 +23,11 @@ public class RedditReaderService : BackgroundService
 
         try
         {
-            var redditClient = new RedditClient("Tfwns6mC_l9tkXwtjRDTDw", );
+            var accessToken = await RedditAuthenticationWrapper.GetClientRefreshTokenAsync(
+                "Tfwns6mC_l9tkXwtjRDTDw", 
+                "<SECRET>", 
+                cancellationToken);            
+            var redditClient = new RedditClient("Tfwns6mC_l9tkXwtjRDTDw", accessToken); // TODO: Move to Reddit wrapper
             var subreddit = redditClient.Subreddit("Gaming");
 
             subreddit.Posts.GetNew();
@@ -41,10 +44,6 @@ public class RedditReaderService : BackgroundService
         {
             this._logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
         }
-    }
-
-    private string GetClientRefreshToken()
-    {
     }
 
     private void NewPostHandler(object sender, PostUpdateEventArgs e)
