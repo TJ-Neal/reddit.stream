@@ -19,31 +19,33 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{286CB367-46F3-4D07-AB8F-CA3109963115}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Infrastructure.Reader", "Infrastructure\Neal.Reddit.Infrastructure.Reader\Neal.Reddit.Infrastructure.Reader.csproj", "{6E9A6609-23F7-47BF-8E95-4288A8A8CFB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Infrastructure.Reader", "Infrastructure\Neal.Reddit.Infrastructure.Reader\Neal.Reddit.Infrastructure.Reader.csproj", "{6E9A6609-23F7-47BF-8E95-4288A8A8CFB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Infrastructure.Kafka", "Infrastructure\Neal.Reddit.Infrastructure.Kafka\Neal.Reddit.Infrastructure.Kafka.csproj", "{F4A0F1F2-7AEB-4889-B3F2-8C14B92A9FA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Infrastructure.Kafka", "Infrastructure\Neal.Reddit.Infrastructure.Kafka\Neal.Reddit.Infrastructure.Kafka.csproj", "{F4A0F1F2-7AEB-4889-B3F2-8C14B92A9FA3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Infrastructure.Reader.Tests", "Infrastructure\UnitTests\Neal.Reddit.Infrastructure.Reader.Tests\Neal.Reddit.Infrastructure.Reader.Tests.csproj", "{B5F78454-1B7D-4DDC-A8D7-8E7053837048}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Infrastructure.Reader.Tests", "Infrastructure\UnitTests\Neal.Reddit.Infrastructure.Reader.Tests\Neal.Reddit.Infrastructure.Reader.Tests.csproj", "{B5F78454-1B7D-4DDC-A8D7-8E7053837048}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Infrastructure.Kafka.Tests", "Infrastructure\UnitTests\Neal.Reddit.Infrastructure.Kafka.Tests\Neal.Reddit.Infrastructure.Kafka.Tests.csproj", "{17C5300F-25C9-454F-8AB8-8317074C7D6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Infrastructure.Kafka.Tests", "Infrastructure\UnitTests\Neal.Reddit.Infrastructure.Kafka.Tests\Neal.Reddit.Infrastructure.Kafka.Tests.csproj", "{17C5300F-25C9-454F-8AB8-8317074C7D6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Core", "Core\Neal.Reddit.Core\Neal.Reddit.Core.csproj", "{F80439C8-4965-48A7-8367-5C78C1875825}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Core", "Core\Neal.Reddit.Core\Neal.Reddit.Core.csproj", "{F80439C8-4965-48A7-8367-5C78C1875825}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{D2C4E8C8-4CDF-476D-9EEF-2CAF9F21841E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Application", "Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj", "{E8CE7980-1A4A-435F-936D-701E3D13A723}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Application", "Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj", "{E8CE7980-1A4A-435F-936D-701E3D13A723}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Clients.Kafka", "Clients\Neal.Reddit.Clients.Kafka\Neal.Reddit.Clients.Kafka.csproj", "{8EDDFFA8-8251-4691-994B-D573A9AF80F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Clients.Kafka", "Clients\Neal.Reddit.Clients.Kafka\Neal.Reddit.Clients.Kafka.csproj", "{8EDDFFA8-8251-4691-994B-D573A9AF80F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Clients.Kafka.Tests", "Clients\UnitTests\Neal.Reddit.Clients.Kafka.Tests\Neal.Reddit.Clients.Kafka.Tests.csproj", "{9531E697-8CFC-4372-AFE7-96F6964EAF8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Clients.Kafka.Tests", "Clients\UnitTests\Neal.Reddit.Clients.Kafka.Tests\Neal.Reddit.Clients.Kafka.Tests.csproj", "{9531E697-8CFC-4372-AFE7-96F6964EAF8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.API.Kafka.Subreddit", "API\Neal.Reddit.API.Kafka.Subreddit\Neal.Reddit.API.Kafka.Subreddit.csproj", "{33BED7F0-D988-4E67-A9BE-112072AB920A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.API.Kafka.Subreddit", "API\Neal.Reddit.API.Kafka.Subreddit\Neal.Reddit.API.Kafka.Subreddit.csproj", "{33BED7F0-D988-4E67-A9BE-112072AB920A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.API.Kafka.Subreddit.Tests", "API\UnitTests\Neal.Reddit.API.Kafka.Subreddit.Tests\Neal.Reddit.API.Kafka.Subreddit.Tests.csproj", "{76493BFD-0A0C-4A75-876D-548BF97F61EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.API.Kafka.Subreddit.Tests", "API\UnitTests\Neal.Reddit.API.Kafka.Subreddit.Tests\Neal.Reddit.API.Kafka.Subreddit.Tests.csproj", "{76493BFD-0A0C-4A75-876D-548BF97F61EC}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "neal.reddit.reactapp", "UI\neal.reddit.reactapp\neal.reddit.reactapp.esproj", "{D9564146-5E3E-4C2D-908F-036143FD0CF9}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{82854929-6C00-495F-B939-6A580CCE0260}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Client.RedditNET", "Clients\Neal.Reddit.Client.RedditNET\Neal.Reddit.Client.RedditNET.csproj", "{AF58C52B-3BE7-46B4-A381-4E0069929C74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +103,10 @@ Global
 		{82854929-6C00-495F-B939-6A580CCE0260}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82854929-6C00-495F-B939-6A580CCE0260}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82854929-6C00-495F-B939-6A580CCE0260}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF58C52B-3BE7-46B4-A381-4E0069929C74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF58C52B-3BE7-46B4-A381-4E0069929C74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF58C52B-3BE7-46B4-A381-4E0069929C74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF58C52B-3BE7-46B4-A381-4E0069929C74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,6 +126,7 @@ Global
 		{33BED7F0-D988-4E67-A9BE-112072AB920A} = {1E7D53F8-C166-487A-B9AC-9C0987D19D08}
 		{76493BFD-0A0C-4A75-876D-548BF97F61EC} = {286CB367-46F3-4D07-AB8F-CA3109963115}
 		{D9564146-5E3E-4C2D-908F-036143FD0CF9} = {A505C243-5786-49A4-84EE-16776D9BA16C}
+		{AF58C52B-3BE7-46B4-A381-4E0069929C74} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B4EF5BA0-A6CF-419D-9261-834FC21801AF}

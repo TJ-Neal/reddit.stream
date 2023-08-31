@@ -49,6 +49,9 @@ try
                     options.AddSerilog(dispose: true);
                 })
                 .AddKafkaClient();
+
+            services
+                .AddHostedService<RedditReaderService>();
         })
         .UseSerilog()
         .Build();
