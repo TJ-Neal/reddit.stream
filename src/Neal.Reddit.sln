@@ -45,7 +45,9 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "neal.reddit.reactapp", "UI\
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{82854929-6C00-495F-B939-6A580CCE0260}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Client.Reddit", "Clients\Neal.Reddit.Client.Reddit\Neal.Reddit.Client.Reddit.csproj", "{0799B1EE-A26F-4E84-A4DC-415A334D0DE2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Clients.Reddit", "Clients\Neal.Reddit.Clients.Reddit\Neal.Reddit.Clients.Reddit.csproj", "{0799B1EE-A26F-4E84-A4DC-415A334D0DE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Clients.Reddit.Tests", "Clients\UnitTests\Neal.Reddit.Clients.Reddit.Tests\Neal.Reddit.Clients.Reddit.Tests.csproj", "{EA48D839-E36A-4018-A8FF-0024BDE45755}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,6 +109,10 @@ Global
 		{0799B1EE-A26F-4E84-A4DC-415A334D0DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0799B1EE-A26F-4E84-A4DC-415A334D0DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0799B1EE-A26F-4E84-A4DC-415A334D0DE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA48D839-E36A-4018-A8FF-0024BDE45755}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA48D839-E36A-4018-A8FF-0024BDE45755}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA48D839-E36A-4018-A8FF-0024BDE45755}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA48D839-E36A-4018-A8FF-0024BDE45755}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +133,7 @@ Global
 		{76493BFD-0A0C-4A75-876D-548BF97F61EC} = {286CB367-46F3-4D07-AB8F-CA3109963115}
 		{D9564146-5E3E-4C2D-908F-036143FD0CF9} = {A505C243-5786-49A4-84EE-16776D9BA16C}
 		{0799B1EE-A26F-4E84-A4DC-415A334D0DE2} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
+		{EA48D839-E36A-4018-A8FF-0024BDE45755} = {679742A8-8313-4EC3-9D1C-6C26B82334A0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B4EF5BA0-A6CF-419D-9261-834FC21801AF}

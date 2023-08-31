@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
-using Neal.Reddit.Client.Reddit.Wrappers;
+using Neal.Reddit.Clients.Reddit.Wrappers;
 using Newtonsoft.Json;
 using Reddit;
 using Reddit.Controllers.EventArgs;
@@ -24,9 +24,9 @@ public class RedditReaderService : BackgroundService
         try
         {
             var accessToken = await RedditAuthenticationWrapper.GetClientRefreshTokenAsync(
-                "Tfwns6mC_l9tkXwtjRDTDw", 
-                "<SECRET>", 
-                cancellationToken);            
+                "Tfwns6mC_l9tkXwtjRDTDw",
+                "<SECRET>",
+                cancellationToken);
             var redditClient = new RedditClient("Tfwns6mC_l9tkXwtjRDTDw", accessToken); // TODO: Move to Reddit wrapper
             var subreddit = redditClient.Subreddit("Gaming");
 

@@ -39,7 +39,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj" />
-    <ProjectReference Include="..\..\Clients\Neal.Reddit.Client.Reddit\Neal.Reddit.Client.Reddit.csproj" />
+    <ProjectReference Include="..\..\Clients\Neal.Reddit.Clients.Reddit\Neal.Reddit.Clients.Reddit.csproj" />
   </ItemGroup>
 
   <ItemGroup>
