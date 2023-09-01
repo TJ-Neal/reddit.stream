@@ -1,8 +1,10 @@
-﻿namespace Neal.Reddit.Core.Entities.Configuration;
+﻿namespace Neal.Reddit.Client.Models;
 
-public class RedditCredentials
+public record Credentials
 {
     public string ClientId { get; set; } = string.Empty;
 
     public string ClientSecret { get; set; } = string.Empty;
+
+    public string DeviceId { get; set; } = string.Empty;
 }

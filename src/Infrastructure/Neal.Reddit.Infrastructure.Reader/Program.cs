@@ -4,8 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
-using Neal.Reddit.Core.Entities.Configuration;
+using Neal.Reddit.Client;
+using Neal.Reddit.Client.Models;
 using Neal.Reddit.Infrastructure.Reader.Services.RedditApi.V1;
+using RestSharp.Authenticators;
 
 // Define thread to periodically send log messages for heartbeats
 var heartbeatThread = new Thread(new ThreadStart(() =>
@@ -34,9 +36,11 @@ try
     Log.Information(ApplicationStatusMessages.Started);
 
     var inMemoryCredentialStore = configuration
-        .GetSection(nameof(RedditCredentials))
-        .Get<RedditCredentials>()
-            ?? new RedditCredentials();
+        .GetSection(nameof(Credentials))
+        .Get<Credentials>()
+            ?? new Credentials();
+
+    var authenticator = new RedditAuthenticator(inMemoryCredentialStore);
 
     // Configure and build Host Service
     var host = Host.CreateDefaultBuilder(args)
@@ -57,7 +61,7 @@ try
                 .AddKafkaClient();
 
             services
-                .AddSingleton(inMemoryCredentialStore)
+                .AddSingleton<IAuthenticator>(authenticator)
                 .AddHostedService<RedditReaderService>();
         })
         .UseSerilog()

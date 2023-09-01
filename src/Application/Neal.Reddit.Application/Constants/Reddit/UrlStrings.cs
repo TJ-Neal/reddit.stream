@@ -2,7 +2,13 @@
 
 public struct UrlStrings
 {
-    public const string RedditApiBaseUrl = "https://www.reddit.com/api/v1";
+    public const string RedditBaseUrl = "https://www.reddit.com";
 
-    public const string TokenPartialUrl = "/access_token";
+    public const string RedditOathBaseUrl = "https://oauth.reddit.com";
+
+    public const string TokenPartialUrl = "/api/v1/access_token";
+
+    public const string SubredditPartialUrl = "/r";
+
+    public const string NewPartialUrl = "/new.json";
 }

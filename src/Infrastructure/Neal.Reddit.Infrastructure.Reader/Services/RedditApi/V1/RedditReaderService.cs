@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
-using Neal.Reddit.Clients.Reddit.Wrappers;
-using Neal.Reddit.Core.Entities.Configuration;
+using Neal.Reddit.Client.Models;
 using Newtonsoft.Json;
-using Reddit;
 using Reddit.Controllers.EventArgs;
 
 namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi.V1;
@@ -13,14 +11,14 @@ public class RedditReaderService : BackgroundService
 {
     private readonly ILogger<RedditReaderService> _logger;
 
-    private readonly RedditCredentials _redditCredentials;
+    private readonly Credentials _credentials;
 
     public RedditReaderService(
         ILogger<RedditReaderService> logger,
-        RedditCredentials redditCredentials)
+        Credentials credentials)
     {
         this._logger = logger;
-        this._redditCredentials = redditCredentials;
+        this._credentials = credentials;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -29,24 +27,24 @@ public class RedditReaderService : BackgroundService
 
         try
         {
-            var accessToken = await RedditAuthenticationWrapper.GetClientRefreshTokenAsync(
-                this._redditCredentials,
-                cancellationToken);
-            var redditClient = new RedditClient(
-                appId: this._redditCredentials.ClientId,
-                accessToken: accessToken); // TODO: Move to Reddit wrapper
-            var subreddit = redditClient.Subreddit("Gaming");
+            //var accessToken = await RedditAuthenticator.GetClientRefreshTokenAsync(
+            //    this._redditCredentials,
+            //    cancellationToken);
+            //var redditClient = new RedditClient(
+            //    appId: this._redditCredentials.ClientId,
+            //    accessToken: accessToken); // TODO: Move to Reddit wrapper
+            //var subreddit = redditClient.Subreddit("Gaming");
 
-            subreddit.Posts.GetNew();
-            subreddit.Posts.MonitorNew();
-            subreddit.Posts.NewUpdated += NewPostHandler;
+            //subreddit.Posts.GetNew();
+            //subreddit.Posts.MonitorNew();
+            //subreddit.Posts.NewUpdated += NewPostHandler;
 
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                await Task.Run(() => { }, cancellationToken);
-            }
+            //while (!cancellationToken.IsCancellationRequested)
+            //{
+            //    await Task.Run(() => { }, cancellationToken);
+            //}
 
-            this._logger.LogInformation(CommonLogMessages.CancelRequested);
+            //this._logger.LogInformation(CommonLogMessages.CancelRequested);
         }
         catch (Exception ex)
         {

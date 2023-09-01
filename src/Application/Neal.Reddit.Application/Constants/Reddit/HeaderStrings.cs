@@ -1,6 +1,6 @@
 ﻿namespace Neal.Reddit.Application.Constants.Reddit;
 
-public struct Headers
+public struct HeaderStrings
 {
     public const string GrantTypeKey = "grant_type";
 
