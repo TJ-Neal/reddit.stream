@@ -1,4 +1,5 @@
 ﻿using Neal.Reddit.Application.Constants.Reddit;
+using Neal.Reddit.Core.Entities.Configuration;
 using RestSharp;
 using RestSharp.Authenticators;
 
@@ -8,13 +9,12 @@ public static class RedditAuthenticationWrapper
 {
     // TODO: Add retry with Polly
     public static async Task<string?> GetClientRefreshTokenAsync(
-        string clientId,
-        string clientSecret,
+        RedditCredentials credentials,
         CancellationToken cancellationToken)
     {
         var options = new RestClientOptions(UrlStrings.RedditApiBaseUrl)
         {
-            Authenticator = new HttpBasicAuthenticator(clientId, clientSecret)
+            Authenticator = new HttpBasicAuthenticator(credentials.ClientId, credentials.ClientSecret)
         };
         var client = new RestClient(options);
         var request = new RestRequest(UrlStrings.TokenPartialUrl);

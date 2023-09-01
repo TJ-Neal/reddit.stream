@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj" />
+    <ProjectReference Include="..\..\Core\Neal.Reddit.Core\Neal.Reddit.Core.csproj" />
   </ItemGroup>
 
 </Project>
