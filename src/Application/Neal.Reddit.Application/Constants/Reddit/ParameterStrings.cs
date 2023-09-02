@@ -11,4 +11,6 @@ public struct ParameterStrings
     public const string Count = "count";
 
     public const string Show = "show";
+
+    public const string RawJson = "raw_json";
 }

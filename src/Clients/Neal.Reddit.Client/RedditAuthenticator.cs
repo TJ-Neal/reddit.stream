@@ -1,8 +1,8 @@
 ﻿using Neal.Reddit.Application.Constants.Reddit;
 using Neal.Reddit.Client.Models;
-using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
+using System.Text.Json;
 
 namespace Neal.Reddit.Client;
 
@@ -18,6 +18,14 @@ public class RedditAuthenticator : AuthenticatorBase
 
     public RedditAuthenticator(Credentials credentials) : base(string.Empty)
     {
+        if (credentials is null
+            || string.IsNullOrWhiteSpace(credentials.ClientId)
+            || string.IsNullOrWhiteSpace(credentials.ClientSecret)
+            || string.IsNullOrWhiteSpace(credentials.DeviceId))
+        {
+            throw new ArgumentNullException(nameof(credentials));
+        }
+
         this._clientId = credentials.ClientId;
         this._clientSecret = credentials.ClientSecret;
         this._deviceId = credentials.DeviceId;
@@ -44,7 +52,14 @@ public class RedditAuthenticator : AuthenticatorBase
             .AddParameter(HeaderStrings.GrantTypeKey, HeaderStrings.GrantTypeValue)
             .AddParameter(HeaderStrings.DeviceIdKey, this._deviceId);
         var response = await client.PostAsync(request);
-        var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(response.Content);
+
+        if (!response.IsSuccessStatusCode
+            || response.Content is null)
+        {
+            throw new Exception($"Unable to authenticate with response {(int)response.StatusCode} {response.StatusDescription}");
+        }
+
+        var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(response.Content);
 
         this.Token = $"{tokenResponse!.TokenType} {tokenResponse!.AccessToken}";
         this._expires = tokenResponse.CreatedAt.AddSeconds(tokenResponse.ExpiresIn);

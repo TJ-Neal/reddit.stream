@@ -23,13 +23,18 @@ public class RedditAuthenticatorTests
     }
 
     [Fact]
-    public async Task Reddit_Authentication_GetClientRefreshTokenAsync_Success()
+    public void Reddit_Authentication_GetAuthenticationParameter_EmptyCredentials_ShouldExcept()
     {
-        if (this._credentials == default)
-        {
-            throw new InvalidOperationException("User secrets must be configured for Reddit Credentials");
-        }
+        // Arrange
+        var credentials = new Credentials();
 
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new RedditAuthenticator(credentials));
+    }
+
+    [Fact]
+    public async Task Reddit_Authentication_GetAuthenticationParameter_Success()
+    {    
         // Arrange
         var authenticator = new RedditAuthenticatorHelper(this._credentials);
 

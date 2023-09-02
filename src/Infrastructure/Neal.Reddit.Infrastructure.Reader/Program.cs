@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client;
 using Neal.Reddit.Client.Models;
-using Neal.Reddit.Infrastructure.Reader.Services.RedditApi.V1;
+using Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 using RestSharp.Authenticators;
 
 // Define thread to periodically send log messages for heartbeats

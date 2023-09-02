@@ -37,5 +37,6 @@ public class RedditClientTests
 
         // Assert
         result.Should().NotBeNull();
+        result!.Kind.Should().Be(Kind.Listing);
     }
 }

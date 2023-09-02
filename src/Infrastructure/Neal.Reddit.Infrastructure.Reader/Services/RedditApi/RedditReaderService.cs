@@ -2,10 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client.Models;
-using Newtonsoft.Json;
 using Reddit.Controllers.EventArgs;
 
-namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi.V1;
+namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 
 public class RedditReaderService : BackgroundService
 {
@@ -17,13 +16,13 @@ public class RedditReaderService : BackgroundService
         ILogger<RedditReaderService> logger,
         Credentials credentials)
     {
-        this._logger = logger;
-        this._credentials = credentials;
+        _logger = logger;
+        _credentials = credentials;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        this._logger.LogInformation(CommonLogMessages.StartingLoop);
+        _logger.LogInformation(CommonLogMessages.StartingLoop);
 
         try
         {
@@ -48,13 +47,13 @@ public class RedditReaderService : BackgroundService
         }
         catch (Exception ex)
         {
-            this._logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
+            _logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
         }
     }
 
-    private void NewPostHandler(object? sender, PostsUpdateEventArgs e)
+    private void NewPostHandler(object? _, PostsUpdateEventArgs e)
     {
-        this._logger.LogInformation(JsonConvert.SerializeObject(e.OldPosts));
-        this._logger.LogInformation(JsonConvert.SerializeObject(e.NewPosts));
+        _logger.LogInformation(JsonSerializer.Serialize(e.OldPosts));
+        _logger.LogInformation(JsonSerializer.Serialize(e.NewPosts));
     }
 }
