@@ -51,6 +51,45 @@ public class RedditReaderService : BackgroundService
         }
     }
 
+    //public async Task MonitorSubredditsForNewAsync(
+    //    IEnumerable<string> subreddits,
+    //    CancellationToken cancellationToken)
+    //{
+    //    var subredditCount = subreddits?.ToList().Count;
+
+    //    if (subreddits is null
+    //        || !subredditCount.HasValue
+    //        || subredditCount <= 0)
+    //    {
+    //        return;
+    //    }
+
+    //    var lastPostDictionary = new ConcurrentDictionary<string, string?>();
+
+    //    while (!cancellationToken.IsCancellationRequested)
+    //    {
+    //        foreach (var subreddit in subreddits)
+    //        {
+    //            _ = lastPostDictionary.TryGetValue(subreddit, out var before);
+    //            var posts = await GetSubredditPostsNewAsync(subreddit, before ?? string.Empty);
+    //            var newBefore = posts?.Data.Children?.FirstOrDefault()?.Data?.Name ?? before;
+
+    //            lastPostDictionary.AddOrUpdate(
+    //                subreddit,
+    //                newBefore, 
+    //                (key, _) => newBefore);
+
+    //            var firstEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)posts?.Data.Children?.FirstOrDefault()?.Data?.CreatedUtcEpoch ?? 0);
+    //            var lastEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)posts?.Data.Children?.LastOrDefault()?.Data?.CreatedUtcEpoch ?? 0);
+    //            Debug.WriteLine($"Post for {subreddit} : {posts?.Data.Count} : First {firstEpoch} : Last {lastEpoch} : {newBefore}");
+
+    //            // TODO: Call handler
+
+    //            Thread.Sleep(GetRequestDelay(subredditCount.Value));
+    //        }
+    //    }
+    //}
+
     private void NewPostHandler(object? _, PostsUpdateEventArgs e)
     {
         _logger.LogInformation(JsonSerializer.Serialize(e.OldPosts));

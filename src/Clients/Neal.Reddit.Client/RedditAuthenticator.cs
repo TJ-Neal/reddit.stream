@@ -51,7 +51,7 @@ public class RedditAuthenticator : AuthenticatorBase
         var request = new RestRequest(UrlStrings.TokenPartialUrl)
             .AddParameter(HeaderStrings.GrantTypeKey, HeaderStrings.GrantTypeValue)
             .AddParameter(HeaderStrings.DeviceIdKey, this._deviceId);
-        var response = await client.PostAsync(request);
+        var response = await client.ExecutePostAsync(request);
 
         if (!response.IsSuccessStatusCode
             || response.Content is null)

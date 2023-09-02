@@ -11,4 +11,6 @@ public struct UrlStrings
     public const string SubredditPartialUrl = "/r";
 
     public const string NewPartialUrl = "/new.json";
+
+    public const string CommentsPartialUrl = "/comments.json";
 }
