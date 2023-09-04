@@ -1,10 +1,9 @@
 ﻿using Neal.Reddit.Application.Constants.Reddit;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Reddit;
 using RestSharp;
 using RestSharp.Authenticators;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -36,9 +35,9 @@ public class RedditClient : IRedditClient, IDisposable
             throw new ArgumentNullException(nameof(subredditId));
         }
 
-        var url = $"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.NewPartialUrl}";
+        Uri uri = new($"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.NewPartialUrl}");
 
-        return await GetSubredditDataAsync<Link>(url, before, after, show, limit);
+        return await GetSubredditDataAsync<Link>(uri, before, after, show, limit);
     }
 
     public async Task<ApiResponse<Listing<Comment>>> GetSubredditCommentsNewAsync(
@@ -53,9 +52,9 @@ public class RedditClient : IRedditClient, IDisposable
             throw new ArgumentNullException(nameof(subredditId));
         }
 
-        var url = $"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.CommentsPartialUrl}";
+        Uri uri = new($"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.CommentsPartialUrl}");
 
-        return await GetSubredditDataAsync<Comment>(url, before, after, show, limit);
+        return await GetSubredditDataAsync<Comment>(uri, before, after, show, limit);
     }
 
     public void Dispose()
@@ -65,13 +64,13 @@ public class RedditClient : IRedditClient, IDisposable
     }
 
     private async Task<ApiResponse<Listing<T>>> GetSubredditDataAsync<T>(
-        string url,
+        Uri uri,
         string before = "",
         string after = "",
         string show = "all",
         int limit = 100) where T : DataBase
     {
-        var request = new RestRequest(url)
+        var request = new RestRequest(uri)
             .AddParameter(ParameterStrings.Before, before)
             .AddParameter(ParameterStrings.After, after)
             .AddParameter(ParameterStrings.Show, show)
@@ -91,16 +90,16 @@ public class RedditClient : IRedditClient, IDisposable
 
         var output = new ApiResponse<Listing<T>>()
         {
-            RateLimitRemaining = GetRateLimitRemaining(response),
-            RateLimitUsed = GetRateLimitUsed(response),
-            RateLimitReset = GetRateLimitReset(response),
+            RateLimitRemaining = ParseRateLimitRemaining(response),
+            RateLimitUsed = ParseRateLimitUsed(response),
+            RateLimitReset = ParseRateLimitReset(response),
             Root = listing
         };
 
         return output;
     }
 
-    private static double GetRateLimitRemaining(RestResponse? response)
+    private static double ParseRateLimitRemaining(RestResponse? response)
     {
         var rateLimitRemainingHeader = response
             ?.Headers
@@ -113,7 +112,7 @@ public class RedditClient : IRedditClient, IDisposable
         return limitRemaining;
     }
 
-    private static int GetRateLimitUsed(RestResponse? response)
+    private static int ParseRateLimitUsed(RestResponse? response)
     {
         var rateLimitUsedHeader = response
             ?.Headers
@@ -126,7 +125,7 @@ public class RedditClient : IRedditClient, IDisposable
         return limitUsed;
     }
 
-    private static int GetRateLimitReset(RestResponse? response)
+    private static int ParseRateLimitReset(RestResponse? response)
     {
         var rateLimitResetHeader = response
             ?.Headers

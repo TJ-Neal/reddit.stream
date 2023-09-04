@@ -17,7 +17,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
-        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.4" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
         <PackageReference Include="Microsoft.VisualStudio.SlowCheetah" Version="4.0.50">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -41,7 +41,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj" />
         <ProjectReference Include="..\..\Clients\Neal.Reddit.Client\Neal.Reddit.Client.csproj" />
-        <ProjectReference Include="..\..\Core\Neal.Reddit.Core\Neal.Reddit.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
-namespace Neal.Reddit.Client.Models;
+namespace Neal.Reddit.Core.Entities.Reddit;
 
 [JsonConverter(typeof(JsonStringEnumConverterWithAttributeSupport))]
 public enum Kind

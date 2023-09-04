@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client;
+using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
 using Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 using RestSharp.Authenticators;
@@ -62,6 +63,7 @@ try
 
             services
                 .AddSingleton<IAuthenticator>(authenticator)
+                .AddSingleton(typeof(IRedditClient), typeof(RedditClient))
                 .AddHostedService<RedditReaderService>();
         })
         .UseSerilog()

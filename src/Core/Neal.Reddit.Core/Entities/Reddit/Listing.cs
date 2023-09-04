@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Neal.Reddit.Client.Models;
+namespace Neal.Reddit.Core.Entities.Reddit;
 
 public record Listing<T> where T : DataBase
 {

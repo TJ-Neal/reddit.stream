@@ -1,4 +1,4 @@
-﻿namespace Neal.Reddit.Client.Models;
+﻿namespace Neal.Reddit.Core.Entities.Reddit;
 
 public record DataContainer<T> where T : class
 {

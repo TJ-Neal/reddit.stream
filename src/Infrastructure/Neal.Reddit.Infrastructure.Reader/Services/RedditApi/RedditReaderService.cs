@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
-using Neal.Reddit.Client.Models;
+using Neal.Reddit.Client.Interfaces;
 using Reddit.Controllers.EventArgs;
 
 namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
@@ -10,14 +10,16 @@ public class RedditReaderService : BackgroundService
 {
     private readonly ILogger<RedditReaderService> _logger;
 
-    private readonly Credentials _credentials;
+    private readonly IRedditClient _redditClient;
+
+    private readonly List<Thread> _threads = new();
 
     public RedditReaderService(
         ILogger<RedditReaderService> logger,
-        Credentials credentials)
+        IRedditClient redditClient)
     {
         _logger = logger;
-        _credentials = credentials;
+        _redditClient = redditClient;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)

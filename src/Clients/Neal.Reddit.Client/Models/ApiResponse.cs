@@ -1,4 +1,6 @@
-﻿namespace Neal.Reddit.Client.Models;
+﻿using Neal.Reddit.Core.Entities.Reddit;
+
+namespace Neal.Reddit.Client.Models;
 
 public record ApiResponse<T> where T : class
 {

@@ -1,4 +1,5 @@
 ﻿using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Reddit;
 
 namespace Neal.Reddit.Client.Interfaces;
 
