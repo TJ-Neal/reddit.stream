@@ -2,14 +2,14 @@
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Application.Utilities;
+using Neal.Reddit.Client.Kafka.Constants;
+using Neal.Reddit.Client.Kafka.Interfaces;
 using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Core.Entities.Reddit;
-using Neal.Reddit.Kafka.Client.Constants;
-using Neal.Reddit.Kafka.Client.Interfaces;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace Neal.Reddit.Kafka.Client.Wrappers;
+namespace Neal.Reddit.Client.Kafka.Wrappers;
 
 /// <summary>
 /// Represents a wrapper for interacting with the Kafka consumer client and Kafka consuming message logs from a Kafka message broker.
@@ -29,38 +29,38 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
     public KafkaConsumerWrapper(WrapperConfiguration<ConsumerConfig> wrapperConfiguration, ILogger<KafkaConsumerWrapper> logger, IHttpClientFactory httpClientFactory)
     {
         this.logger = logger;
-        this.clientFactory = httpClientFactory;
-        this.configuration = wrapperConfiguration;
+        clientFactory = httpClientFactory;
+        configuration = wrapperConfiguration;
 
-        if (this.configuration is null
-            || string.IsNullOrEmpty(this.configuration?.ClientConfig?.BootstrapServers))
+        if (configuration is null
+            || string.IsNullOrEmpty(configuration?.ClientConfig?.BootstrapServers))
         {
-            throw new KeyNotFoundException($"Key {nameof(this.configuration.ClientConfig.BootstrapServers)} was not found and is required.");
+            throw new KeyNotFoundException($"Key {nameof(configuration.ClientConfig.BootstrapServers)} was not found and is required.");
         }
 
-        this.configuration.ClientConfig.GroupId = new Guid().ToString(); // Create a random consumer group so messages can be replayed from offset without special configuration
-        this.consumer =
-            new ConsumerBuilder<string, string>(this.configuration.ClientConfig)
+        configuration.ClientConfig.GroupId = new Guid().ToString(); // Create a random consumer group so messages can be replayed from offset without special configuration
+        consumer =
+            new ConsumerBuilder<string, string>(configuration.ClientConfig)
             .Build();
-        this.consumer.Subscribe(this.configuration.Topic);
+        consumer.Subscribe(configuration.Topic);
         this.logger.LogInformation(WrapperLogMessages.Subscribed, wrapperConfiguration.Topic);
     }
 
     public async Task ConsumeAsync(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(this.configuration.BaseUrl))
+        if (string.IsNullOrEmpty(configuration.BaseUrl))
         {
             throw new InvalidOperationException(CommonLogMessages.InvalidConfiguration);
         }
 
         // TODO: Create a timer for resetting faulted so producers can retry after t time
-        while (this.configuration.Enabled
+        while (configuration.Enabled
             && !hasFaulted
             && !cancellationToken.IsCancellationRequested)
         {
             try
             {
-                var data = await this.GetNextSubscriptionResult(cancellationToken);
+                var data = await GetNextSubscriptionResult(cancellationToken);
 
                 if (!hasFaulted && data is not null)
                 {
@@ -72,21 +72,21 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
                         {
                             using var client = clientFactory.CreateClient();
 
-                            var postResult = await client.PostAsJsonAsync(this.configuration.BaseUrl, new List<DataBase> { data }, cancellationToken);
+                            var postResult = await client.PostAsJsonAsync(configuration.BaseUrl, new List<DataBase> { data }, cancellationToken);
 
                             if (postResult is null || !postResult.IsSuccessStatusCode)
                             {
-                                this.logger.LogError(HandlerLogMessages.ConsumerPostError, postResult?.StatusCode, postResult?.Content);
+                                logger.LogError(HandlerLogMessages.ConsumerPostError, postResult?.StatusCode, postResult?.Content);
                             }
                             else
                             {
-                                this.logger.LogDebug(HandlerLogMessages.PrintConsumeResult, DateTime.Now, postResult.StatusCode, data.Name);
+                                logger.LogDebug(HandlerLogMessages.PrintConsumeResult, DateTime.Now, postResult.StatusCode, data.Name);
                                 break;
                             }
                         }
                         catch (Exception ex)
                         {
-                            this.logger.LogCritical(HandlerLogMessages.ProducerException, ex.Message);
+                            logger.LogCritical(HandlerLogMessages.ProducerException, ex.Message);
 
                             // Exit loop if exception is not transient
                             if (!RetryUtilities.ExceptionIsTransient(ex))
@@ -102,29 +102,29 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
             }
             catch (Exception ex)
             {
-                this.logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
+                logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
             }
         }
     }
 
     public void Dispose()
     {
-        this.logger.LogInformation(CommonLogMessages.Disposing, nameof(KafkaConsumerWrapper));
-        this.logger.LogInformation(CommonLogMessages.Disposing, nameof(this.consumer));
+        logger.LogInformation(CommonLogMessages.Disposing, nameof(KafkaConsumerWrapper));
+        logger.LogInformation(CommonLogMessages.Disposing, nameof(consumer));
 
         try
         {
-            if (this.consumer is not null)
+            if (consumer is not null)
             {
-                this.consumer.Unsubscribe();
-                this.consumer.Close();
-                this.consumer.Dispose();
+                consumer.Unsubscribe();
+                consumer.Close();
+                consumer.Dispose();
             }
         }
         catch (Exception ex)
         {
-            this.logger
-                .LogError(ExceptionMessages.DisposeException, nameof(this.consumer), ex.Message);
+            logger
+                .LogError(ExceptionMessages.DisposeException, nameof(consumer), ex.Message);
         }
 
         GC.SuppressFinalize(this);
@@ -138,7 +138,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
 
             while (retries < RetryUtilities.MaxRetries)
             {
-                var consumeResult = await Task.Run(() => this.consumer.Consume(cancellationToken));
+                var consumeResult = await Task.Run(() => consumer.Consume(cancellationToken));
 
                 if (consumeResult is not null)
                 {
@@ -146,7 +146,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
 
                     if (data is not null)
                     {
-                        this.logger.LogDebug(
+                        logger.LogDebug(
                             HandlerLogMessages.PrintConsumeResult,
                             DateTime.Now.ToUniversalTime(),
                             consumeResult.Message.Key,
@@ -163,7 +163,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
         }
         catch (Exception ex)
         {
-            this.logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
+            logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
         }
 
         return default;

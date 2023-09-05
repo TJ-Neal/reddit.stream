@@ -33,7 +33,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{D2C4E8C8-4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Application", "Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj", "{E8CE7980-1A4A-435F-936D-701E3D13A723}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.API.Kafka.Subreddit", "API\Neal.Reddit.API.Kafka.Subreddit\Neal.Reddit.API.Kafka.Subreddit.csproj", "{33BED7F0-D988-4E67-A9BE-112072AB920A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.API.Kafka.Reddit", "API\Neal.Reddit.API.Kafka.Subreddit\Neal.Reddit.API.Kafka.Reddit.csproj", "{33BED7F0-D988-4E67-A9BE-112072AB920A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.API.Kafka.Subreddit.Tests", "API\UnitTests\Neal.Reddit.API.Kafka.Subreddit.Tests\Neal.Reddit.API.Kafka.Subreddit.Tests.csproj", "{76493BFD-0A0C-4A75-876D-548BF97F61EC}"
 EndProject
@@ -45,7 +45,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Client", "Clien
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Client.Tests", "Clients\UnitTests\Neal.Reddit.Client.Tests\Neal.Reddit.Client.Tests.csproj", "{C3CA19C0-4D1B-4B75-BDE9-3EC26FF22335}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Kafka.Client", "Clients\Neal.Reddit.Kafka.Client\Neal.Reddit.Kafka.Client.csproj", "{3BB1CD6F-8E23-4704-81BE-836F972BFFC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Client.Kafka", "Clients\Neal.Reddit.Kafka.Client\Neal.Reddit.Client.Kafka.csproj", "{3BB1CD6F-8E23-4704-81BE-836F972BFFC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Client.Faster", "Clients\Neal.Reddit.Client.Faster\Neal.Reddit.Client.Faster.csproj", "{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Client.Simple", "Clients\Neal.Reddit.Client.Simple\Neal.Reddit.Client.Simple.csproj", "{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Infrastructure.Faster.Repository", "Infrastructure\Neal.Reddit.Infrastructure.Faster.Repository\Neal.Reddit.Infrastructure.Faster.Repository.csproj", "{C5300319-DCA9-4448-8A4E-9D7ACB1A5357}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +141,24 @@ Global
 		{3BB1CD6F-8E23-4704-81BE-836F972BFFC4}.Docker|Any CPU.Build.0 = Debug|Any CPU
 		{3BB1CD6F-8E23-4704-81BE-836F972BFFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BB1CD6F-8E23-4704-81BE-836F972BFFC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E}.Docker|Any CPU.ActiveCfg = Debug|Any CPU
+		{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E}.Docker|Any CPU.Build.0 = Debug|Any CPU
+		{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}.Docker|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}.Docker|Any CPU.Build.0 = Debug|Any CPU
+		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5300319-DCA9-4448-8A4E-9D7ACB1A5357}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5300319-DCA9-4448-8A4E-9D7ACB1A5357}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5300319-DCA9-4448-8A4E-9D7ACB1A5357}.Docker|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5300319-DCA9-4448-8A4E-9D7ACB1A5357}.Docker|Any CPU.Build.0 = Debug|Any CPU
+		{C5300319-DCA9-4448-8A4E-9D7ACB1A5357}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5300319-DCA9-4448-8A4E-9D7ACB1A5357}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -155,6 +179,9 @@ Global
 		{40F5BA9B-F38D-4FFB-966B-169E65B8139B} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
 		{C3CA19C0-4D1B-4B75-BDE9-3EC26FF22335} = {679742A8-8313-4EC3-9D1C-6C26B82334A0}
 		{3BB1CD6F-8E23-4704-81BE-836F972BFFC4} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
+		{73E7ADEC-D0FE-4983-974C-AD3CF4BEA51E} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
+		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
+		{C5300319-DCA9-4448-8A4E-9D7ACB1A5357} = {9A7F23C0-0C4D-4BEB-84C1-9C98E4EA922E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B4EF5BA0-A6CF-419D-9261-834FC21801AF}

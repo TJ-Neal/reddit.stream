@@ -1,7 +1,7 @@
 ﻿using Neal.Reddit.Application.Interfaces;
 using Neal.Reddit.Core.Entities.Kafka;
 
-namespace Neal.Reddit.Kafka.Client.Interfaces;
+namespace Neal.Reddit.Client.Kafka.Interfaces;
 
 /// <summary>
 /// Represents a wrapper for events produced for the Kafka producer wrapper.

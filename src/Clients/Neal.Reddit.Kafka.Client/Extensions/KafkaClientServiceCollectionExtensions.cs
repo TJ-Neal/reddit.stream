@@ -1,11 +1,11 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
+using Neal.Reddit.Client.Kafka.Events.Handlers;
+using Neal.Reddit.Client.Kafka.Interfaces;
+using Neal.Reddit.Client.Kafka.Wrappers;
 using Neal.Reddit.Core.Entities.Configuration;
-using Neal.Reddit.Kafka.Client.Events.Handlers;
-using Neal.Reddit.Kafka.Client.Interfaces;
-using Neal.Reddit.Kafka.Client.Wrappers;
 
-namespace Neal.Reddit.Kafka.Client.Extensions;
+namespace Neal.Reddit.Client.Kafka.Extensions;
 
 /// <summary>
 /// Add the required types for dependency injection when the Kafka client and repository are enabled according to the provided <see cref="KafkaProducerWrapperConfiguration"/>.

@@ -12,4 +12,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj" />
+    <ProjectReference Include="..\..\Core\Neal.Reddit.Core\Neal.Reddit.Core.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\Neal.Reddit.Infrastructure.Faster.Repository\Neal.Reddit.Infrastructure.Faster.Repository.csproj" />
+  </ItemGroup>
+
 </Project>

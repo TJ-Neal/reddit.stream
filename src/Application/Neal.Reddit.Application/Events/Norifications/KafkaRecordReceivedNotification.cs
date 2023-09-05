@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Neal.Reddit.Core.Entities.Reddit;
 
-namespace Neal.Reddit.Application.Events.Norifications;
+namespace Neal.Reddit.Application.Events.Notifications;
 
 /// <summary>
 /// Represents a notification for when a record has been received.

@@ -31,7 +31,8 @@ try
 
     // Attach Serilog logger
     Log.Logger = new LoggerConfiguration()
-        .ReadFrom.Configuration(configuration)
+        .ReadFrom
+        .Configuration(configuration)
         .CreateLogger();
 
     Log.Information(ApplicationStatusMessages.Started);

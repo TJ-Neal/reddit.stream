@@ -1,12 +1,12 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
+using Neal.Reddit.Client.Kafka.Constants;
+using Neal.Reddit.Client.Kafka.Interfaces;
 using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Core.Entities.Kafka;
-using Neal.Reddit.Kafka.Client.Constants;
-using Neal.Reddit.Kafka.Client.Interfaces;
 
-namespace Neal.Reddit.Kafka.Client.Wrappers;
+namespace Neal.Reddit.Client.Kafka.Wrappers;
 
 /// <summary>
 /// Represents a wrapper for interacting with the Kafka producer client and Kafka production of message logs from a Kafka message broker.
@@ -39,11 +39,11 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
 
         try
         {
-            this.producer = new ProducerBuilder<string, string>(wrapperConfiguration.ClientConfig).Build();
+            producer = new ProducerBuilder<string, string>(wrapperConfiguration.ClientConfig).Build();
         }
         catch (Exception ex)
         {
-            this.logger.LogCritical(ExceptionMessages.InstantiationError, nameof(this.producer), ex);
+            this.logger.LogCritical(ExceptionMessages.InstantiationError, nameof(producer), ex);
         }
     }
 
@@ -64,24 +64,24 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
                 }
                 else
                 {
-                    lock (this.producerLock)
+                    lock (producerLock)
                     {
-                        this.producedCount++;
+                        producedCount++;
 
-                        if (this.producedCount % 1000M == 0)
+                        if (producedCount % 1000M == 0)
                         {
-                            this.logger.LogInformation(
+                            logger.LogInformation(
                                 HandlerLogMessages.PrintProducerResult,
                                 deliveryReport.Timestamp.UtcDateTime.ToLocalTime().ToShortTimeString(),
                                 deliveryReport.Status,
                                 deliveryReport.Topic,
-                                this.producedCount);
+                                producedCount);
                         }
                     }
                 }
             }
 
-            this.producer?
+            producer?
                 .Produce(
                     message.Topic,
                     message.Message,
@@ -89,7 +89,7 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
         }
         catch (Exception ex)
         {
-            this.logger.LogCritical(
+            logger.LogCritical(
                 HandlerLogMessages.ProducerException,
                 message.Message.Key,
                 message.Message.Value,
@@ -102,14 +102,14 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
 
     public void Flush()
     {
-        this.producer?.Flush();
-        this.logger.LogInformation(CommonLogMessages.Flushed, nameof(this.producer));
+        producer?.Flush();
+        logger.LogInformation(CommonLogMessages.Flushed, nameof(producer));
     }
 
     public void Dispose()
     {
-        this.logger.LogInformation(CommonLogMessages.Disposing, nameof(this.producer));
-        this.producer?.Dispose();
+        logger.LogInformation(CommonLogMessages.Disposing, nameof(producer));
+        producer?.Dispose();
 
         GC.SuppressFinalize(this);
     }

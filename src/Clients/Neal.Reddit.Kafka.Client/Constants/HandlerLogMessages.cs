@@ -1,4 +1,4 @@
-﻿namespace Neal.Reddit.Kafka.Client.Constants;
+﻿namespace Neal.Reddit.Client.Kafka.Constants;
 
 /// <summary>
 /// Represents messages for logging.

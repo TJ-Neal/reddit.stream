@@ -1,14 +1,14 @@
 ﻿using Confluent.Kafka;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Neal.Reddit.Application.Events.Norifications;
+using Neal.Reddit.Application.Events.Notifications;
+using Neal.Reddit.Client.Kafka.Constants;
+using Neal.Reddit.Client.Kafka.Interfaces;
 using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Core.Entities.Kafka;
 using Neal.Reddit.Core.Entities.Reddit;
-using Neal.Reddit.Kafka.Client.Constants;
-using Neal.Reddit.Kafka.Client.Interfaces;
 
-namespace Neal.Reddit.Kafka.Client.Events.Handlers;
+namespace Neal.Reddit.Client.Kafka.Events.Handlers;
 
 /// <summary>
 /// Implementation of an event handler for received tweets to capture them and publish them to Kafka
@@ -27,16 +27,16 @@ public class KafkaRecordReceivedHandler : INotificationHandler<KafkaRecordReceiv
 
     public KafkaRecordReceivedHandler(IKafkaProducerWrapper kafkaProducer, ILogger<KafkaRecordReceivedHandler> logger, WrapperConfiguration<ProducerConfig> wrapperConfiguration)
     {
-        this.topic = string.IsNullOrEmpty(wrapperConfiguration.Topic)
+        topic = string.IsNullOrEmpty(wrapperConfiguration.Topic)
                 ? throw new KafkaException(ErrorCode.Local_UnknownTopic)
                 : wrapperConfiguration.Topic;
-        this.kafkaProducerWrapper = kafkaProducer;
+        kafkaProducerWrapper = kafkaProducer;
         this.logger = logger;
     }
 
     #region INotificationHandler Implementation
 
-    public void Dispose() => this.kafkaProducerWrapper.Flush();
+    public void Dispose() => kafkaProducerWrapper.Flush();
 
     /// <summary>
     /// Handle when a <seealso cref="KafkaRecordReceivedNotification"/> notification is received, publishing to the Kafka stream.
@@ -45,26 +45,26 @@ public class KafkaRecordReceivedHandler : INotificationHandler<KafkaRecordReceiv
     {
         if (notification is null)
         {
-            this.logger.LogDebug(HandlerLogMessages.NullNotification);
+            logger.LogDebug(HandlerLogMessages.NullNotification);
 
             return;
         }
 
         if (notification.Record is null)
         {
-            this.logger.LogDebug(HandlerLogMessages.NullRecord);
+            logger.LogDebug(HandlerLogMessages.NullRecord);
 
             return;
         }
 
         if (notification.Record.Name is null || string.IsNullOrWhiteSpace(notification.Record.Name))
         {
-            this.logger.LogDebug(HandlerLogMessages.NullRecordId);
+            logger.LogDebug(HandlerLogMessages.NullRecordId);
 
             return;
         }
 
-        await this.kafkaProducerWrapper
+        await kafkaProducerWrapper
             .ProduceAsync(
                 new KafkaProducerMessage(
                     new Message<string, DataBase>
@@ -72,7 +72,7 @@ public class KafkaRecordReceivedHandler : INotificationHandler<KafkaRecordReceiv
                         Key = notification.Record.Name.ToString()!,
                         Value = notification.Record
                     },
-                    this.topic
+                    topic
                 ),
                 cancellationToken);
     }

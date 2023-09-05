@@ -1,4 +1,4 @@
-﻿namespace Neal.Reddit.Kafka.Client.Interfaces;
+﻿namespace Neal.Reddit.Client.Kafka.Interfaces;
 
 /// <summary>
 /// Represents a wrapper for consuming log messages from the Kafka consumer.
