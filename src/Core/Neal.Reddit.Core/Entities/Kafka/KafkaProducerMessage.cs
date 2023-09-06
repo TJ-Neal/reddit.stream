@@ -10,7 +10,7 @@ public class KafkaProducerMessage
 
     public string Topic { get; init; }
 
-    public KafkaProducerMessage(Message<string, DataBase> message, string topic)
+    public KafkaProducerMessage(Message<string, Link> message, string topic)
     {
         this.Message = new Message<string, string>
         {

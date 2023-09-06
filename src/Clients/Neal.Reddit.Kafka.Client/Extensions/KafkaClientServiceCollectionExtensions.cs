@@ -26,7 +26,7 @@ public static class KafkaClientServiceCollectionExtensions
         services
             .AddSingleton(kafkaProducerConfiguration)
             .AddSingleton(typeof(IKafkaProducerWrapper), typeof(KafkaProducerWrapper))
-            .AddMediatR(config => config.RegisterServicesFromAssembly(typeof(KafkaRecordReceivedHandler).Assembly));
+            .AddMediatR(config => config.RegisterServicesFromAssembly(typeof(KafkaPostReceivedHandler).Assembly));
 
         return services;
     }

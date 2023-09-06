@@ -36,7 +36,7 @@ public sealed class SimpleProducerWrapper : ISimpleProducerWrapper
         this.clientFactory = clientFactory;
     }
 
-    public async Task ProduceAsync(DataBase message, CancellationToken cancellationToken)
+    public async Task ProduceAsync(Link message, CancellationToken cancellationToken)
     {
         // TODO: Create a timer for resetting faulted so producers can retry after t time
         if (!this.configuration.Enabled
@@ -59,7 +59,7 @@ public sealed class SimpleProducerWrapper : ISimpleProducerWrapper
             {
                 using var client = clientFactory.CreateClient();
 
-                var result = await client.PostAsJsonAsync(this.configuration.BaseUrl, new List<DataBase> { message }, cancellationToken);
+                var result = await client.PostAsJsonAsync(this.configuration.BaseUrl, new List<Link> { message }, cancellationToken);
 
                 if (result is null || !result.IsSuccessStatusCode)
                 {

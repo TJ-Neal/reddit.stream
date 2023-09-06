@@ -36,7 +36,7 @@ public sealed class FasterProducerWrapper : IFasterProducerWrapper
         this.clientFactory = clientFactory;
     }
 
-    public async Task ProduceAsync(DataBase message, CancellationToken cancellationToken)
+    public async Task ProduceAsync(Link message, CancellationToken cancellationToken)
     {
         if (!this.configuration.Enabled
             || hasFaulted
@@ -58,7 +58,7 @@ public sealed class FasterProducerWrapper : IFasterProducerWrapper
             {
                 using var client = clientFactory.CreateClient();
 
-                var result = await client.PostAsJsonAsync(this.configuration.BaseUrl, new List<DataBase> { message }, cancellationToken);
+                var result = await client.PostAsJsonAsync(this.configuration.BaseUrl, new List<Link> { message }, cancellationToken);
 
                 if (result is null || !result.IsSuccessStatusCode)
                 {

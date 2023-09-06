@@ -2,7 +2,7 @@
 
 namespace Neal.Reddit.Core.Entities.Reddit;
 
-public record Listing<T> where T : DataBase
+public record Listing<T> where T : Link
 {
     public string After { get; set; } = string.Empty;
 

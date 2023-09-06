@@ -83,7 +83,7 @@ public sealed class FasterRecordRepository : IRedditRepository
         redditRecordStore.Dispose();
     }
 
-    public async Task AddRecordsAsync(IEnumerable<DataBase> records)
+    public async Task AddPostsAsync(IEnumerable<DataBase> records)
     {
         var recordSession = GetRecordsSession();
         var authorsSession = GetAuthorsSession();

@@ -51,7 +51,6 @@ try
         .Services
         .AddEndpointsApiExplorer()
         .AddSwaggerGen()
-        .AddProblemDetails()
         .AddMemoryCache()
         .AddSingleton<IRedditRepository, FasterRecordRepository>()
         .AddHealthChecks();

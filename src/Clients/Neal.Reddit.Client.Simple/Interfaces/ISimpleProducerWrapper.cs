@@ -6,6 +6,6 @@ namespace Neal.Reddit.Client.Simple.Interfaces;
 /// <summary>
 /// Represents a wrapper for events produced for the Simple client and repository.
 /// </summary>
-public interface ISimpleProducerWrapper : IProducerWrapper<DataBase>
+public interface ISimpleProducerWrapper : IProducerWrapper<Link>
 {
 }
