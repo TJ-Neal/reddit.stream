@@ -11,11 +11,4 @@ public interface IRedditClient
         string after = "",
         string show = "all",
         int limit = 100);
-
-    public Task<ApiResponse<Listing<Comment>>> GetSubredditCommentsNewAsync(
-        string subredditId,
-        string before = "",
-        string after = "",
-        string show = "all",
-        int limit = 100);
 }

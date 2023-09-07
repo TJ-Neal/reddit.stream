@@ -72,7 +72,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
                         {
                             using var client = clientFactory.CreateClient();
 
-                            var postResult = await client.PostAsJsonAsync(configuration.BaseUrl, new List<DataBase> { data }, cancellationToken);
+                            var postResult = await client.PostAsJsonAsync(configuration.BaseUrl, new List<Link> { data }, cancellationToken);
 
                             if (postResult is null || !postResult.IsSuccessStatusCode)
                             {
@@ -130,7 +130,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
         GC.SuppressFinalize(this);
     }
 
-    private async Task<DataBase?> GetNextSubscriptionResult(CancellationToken cancellationToken)
+    private async Task<Link?> GetNextSubscriptionResult(CancellationToken cancellationToken)
     {
         try
         {
@@ -142,7 +142,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
 
                 if (consumeResult is not null)
                 {
-                    var data = JsonSerializer.Deserialize<DataBase>(consumeResult.Message.Value);
+                    var data = JsonSerializer.Deserialize<Link>(consumeResult.Message.Value);
 
                     if (data is not null)
                     {

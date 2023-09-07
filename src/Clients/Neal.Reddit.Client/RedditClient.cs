@@ -35,26 +35,9 @@ public class RedditClient : IRedditClient, IDisposable
             throw new ArgumentNullException(nameof(subredditId));
         }
 
-        Uri uri = new($"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.NewPartialUrl}");
+        var path = $"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.NewPartialUrl}";
 
-        return await GetSubredditDataAsync<Link>(uri, before, after, show, limit);
-    }
-
-    public async Task<ApiResponse<Listing<Comment>>> GetSubredditCommentsNewAsync(
-        string subredditId,
-        string before = "",
-        string after = "",
-        string show = "all",
-        int limit = 100)
-    {
-        if (string.IsNullOrWhiteSpace(subredditId))
-        {
-            throw new ArgumentNullException(nameof(subredditId));
-        }
-
-        Uri uri = new($"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.CommentsPartialUrl}");
-
-        return await GetSubredditDataAsync<Comment>(uri, before, after, show, limit);
+        return await GetSubredditDataAsync<Link>(path, before, after, show, limit);
     }
 
     public void Dispose()
@@ -64,13 +47,13 @@ public class RedditClient : IRedditClient, IDisposable
     }
 
     private async Task<ApiResponse<Listing<T>>> GetSubredditDataAsync<T>(
-        Uri uri,
+        string path,
         string before = "",
         string after = "",
         string show = "all",
-        int limit = 100) where T : DataBase
+        int limit = 100) where T : Link
     {
-        var request = new RestRequest(uri)
+        var request = new RestRequest(path)
             .AddParameter(ParameterStrings.Before, before)
             .AddParameter(ParameterStrings.After, after)
             .AddParameter(ParameterStrings.Show, show)

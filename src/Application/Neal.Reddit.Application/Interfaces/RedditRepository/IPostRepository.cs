@@ -3,13 +3,11 @@ using Neal.Reddit.Core.Entities.Reddit;
 
 namespace Neal.Reddit.Application.Interfaces.RedditRepository;
 
-public interface IRedditRepository : IDisposable
+public interface IPostRepository : IDisposable
 {
     Task AddPostsAsync(IEnumerable<Link> records);
 
     Task<List<Link>> GetAllPostsAsync(Pagination pagination);
-
-    Task<List<string>> GetAllAuthorsAsync(Pagination pagination);
 
     Task<long> GetCountAsync();
 

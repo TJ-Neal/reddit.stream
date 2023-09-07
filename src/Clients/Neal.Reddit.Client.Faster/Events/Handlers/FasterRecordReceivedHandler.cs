@@ -16,7 +16,7 @@ public class FasterRecordReceivedHandler : INotificationHandler<KafkaPostReceive
 
     public async Task Handle(KafkaPostReceivedNotification notification, CancellationToken cancellationToken) =>
         await this.recordRepositoryProducerWrapper
-            .ProduceAsync(notification.Record, cancellationToken);
+            .ProduceAsync(notification.Post, cancellationToken);
 
     public override int GetHashCode() => base.GetHashCode();
 }

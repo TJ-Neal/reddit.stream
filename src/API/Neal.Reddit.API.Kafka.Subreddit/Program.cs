@@ -52,7 +52,7 @@ try
         .AddEndpointsApiExplorer()
         .AddSwaggerGen()
         .AddMemoryCache()
-        .AddSingleton<IRedditRepository, FasterRecordRepository>()
+        .AddSingleton<IPostRepository, FasterPostRepository>()
         .AddHealthChecks();
 
     var app = builder.Build();

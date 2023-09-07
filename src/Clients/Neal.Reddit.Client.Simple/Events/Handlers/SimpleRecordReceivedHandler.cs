@@ -21,7 +21,7 @@ public class SimpleRecordReceivedHandler : INotificationHandler<KafkaPostReceive
     #region INotificationHandler Implementation
 
     public async Task Handle(KafkaPostReceivedNotification notification, CancellationToken cancellationToken) =>
-        await this.recordRepositoryProducerWrapper.ProduceAsync(notification.Record, cancellationToken);
+        await this.recordRepositoryProducerWrapper.ProduceAsync(notification.Post, cancellationToken);
 
     #endregion INotificationHandler Implementation
 

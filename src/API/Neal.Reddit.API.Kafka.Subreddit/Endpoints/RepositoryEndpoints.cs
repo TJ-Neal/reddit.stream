@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Neal.Reddit.Application.Constants.Api;
-using Neal.Reddit.Application.Constants.Api;
 using Neal.Reddit.Application.Interfaces.RedditRepository;
 using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Core.Entities.Reddit;
