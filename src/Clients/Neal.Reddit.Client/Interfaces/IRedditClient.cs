@@ -11,4 +11,6 @@ public interface IRedditClient
         string after = "",
         string show = "all",
         int limit = 100);
+
+    public Task MonitorSubredditPostsAsync(string subredditId, CancellationToken cancellationToken);
 }

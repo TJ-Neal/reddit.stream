@@ -7,7 +7,6 @@ using Neal.Reddit.API.Kafka.Reddit.Endpoints;
 using Neal.Reddit.Application.Constants;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Application.Interfaces.RedditRepository;
-using Neal.Reddit.Infrastructure.Faster.Repository.Services.Repository;
 using Serilog;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -52,7 +51,6 @@ try
         .AddEndpointsApiExplorer()
         .AddSwaggerGen()
         .AddMemoryCache()
-        .AddSingleton<IPostRepository, FasterPostRepository>()
         .AddHealthChecks();
 
     var app = builder.Build();

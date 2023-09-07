@@ -1,4 +1,5 @@
-﻿using Neal.Reddit.Application.Constants.Reddit;
+﻿using Microsoft.Extensions.Logging;
+using Neal.Reddit.Application.Constants.Reddit;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
 using Neal.Reddit.Core.Entities.Reddit;
@@ -11,9 +12,13 @@ namespace Neal.Reddit.Client;
 
 public class RedditClient : IRedditClient, IDisposable
 {
+    private const int LIMIT = 100;
+
     private readonly RestClient _client;
 
-    public RedditClient(IAuthenticator authenticator)
+    private readonly ILogger<RedditClient> _logger;
+
+    public RedditClient(IAuthenticator authenticator, ILogger<RedditClient> logger)
     {
         var options = new RestClientOptions(UrlStrings.RedditOathBaseUrl)
         {
@@ -21,6 +26,7 @@ public class RedditClient : IRedditClient, IDisposable
         };
 
         this._client = new RestClient(options);
+        this._logger = logger;
     }
 
     public async Task<ApiResponse<Listing<Link>>> GetSubredditPostsNewAsync(
@@ -38,6 +44,46 @@ public class RedditClient : IRedditClient, IDisposable
         var path = $"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.NewPartialUrl}";
 
         return await GetSubredditDataAsync<Link>(path, before, after, show, limit);
+    }
+
+    // TODO: Add handler parameter
+    public async Task MonitorSubredditPostsAsync(string subredditId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(subredditId))
+        {
+            throw new ArgumentNullException(nameof(subredditId));
+        }
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            int count;
+            var after = string.Empty;
+
+            do
+            {
+                var posts = await this.GetSubredditPostsNewAsync(subredditId, after: after);
+                var firstPost = posts?.Root?.Data?.Children?.FirstOrDefault();
+                var lastPost = posts?.Root?.Data?.Children?.LastOrDefault();
+                var firstEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)firstPost?.Data?.CreatedUtcEpoch ?? 0);
+                var lastEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)lastPost?.Data?.CreatedUtcEpoch ?? 0);
+                this._logger.LogInformation(
+                    "Posts for {subredditId} : {count}\n\tFirst {firstName} {firstEpoch}\n\tLast {lastName} {lastEpoch}",
+                    subredditId,
+                    posts?.Root?.Data?.Count,
+                    firstPost?.Data?.Name,
+                    firstEpoch,
+                    lastPost?.Data?.Name,
+                    lastEpoch);
+                count = posts?.Root?.Data?.Count ?? 0;
+                after = lastPost?.Data?.Name ?? string.Empty;
+
+                // TODO: Call handler
+
+                // TODO: Replace with calculated sleep
+                Thread.Sleep(1500);
+            }
+            while (count == LIMIT);
+        }
     }
 
     public void Dispose()
