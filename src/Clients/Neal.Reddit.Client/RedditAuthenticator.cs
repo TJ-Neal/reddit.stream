@@ -1,5 +1,6 @@
 ﻿using Neal.Reddit.Application.Constants.Reddit;
 using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Exceptions;
 using RestSharp;
 using RestSharp.Authenticators;
 using System.Text.Json;
@@ -23,7 +24,7 @@ public class RedditAuthenticator : AuthenticatorBase
             || string.IsNullOrWhiteSpace(credentials.ClientSecret)
             || string.IsNullOrWhiteSpace(credentials.DeviceId))
         {
-            throw new ArgumentNullException(nameof(credentials));
+            throw new ConfigurationException<Credentials>();
         }
 
         this._clientId = credentials.ClientId;

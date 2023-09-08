@@ -2,6 +2,7 @@
 using Neal.Reddit.Application.Constants.Reddit;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Exceptions;
 using Neal.Reddit.Core.Entities.Reddit;
 using RestSharp;
 using RestSharp.Authenticators;
@@ -29,60 +30,85 @@ public class RedditClient : IRedditClient, IDisposable
         this._logger = logger;
     }
 
-    public async Task<ApiResponse<Listing<Link>>> GetSubredditPostsNewAsync(
-        string subredditId,
+    public async Task<ApiResponse> GetPostsNewAsync(
+        SubredditConfiguration configuration,
         string before = "",
         string after = "",
         string show = "all",
-        int limit = 100)
+        int limit = LIMIT)
     {
-        if (string.IsNullOrWhiteSpace(subredditId))
+        if (string.IsNullOrWhiteSpace(configuration.Name))
         {
-            throw new ArgumentNullException(nameof(subredditId));
+            throw new ConfigurationException<SubredditConfiguration>();
         }
 
-        var path = $"{UrlStrings.SubredditPartialUrl}/{subredditId}{UrlStrings.NewPartialUrl}";
+        var path = $"{UrlStrings.SubredditPartialUrl}/{configuration}{UrlStrings.NewPartialUrl}";
 
-        return await GetSubredditDataAsync<Link>(path, before, after, show, limit);
+        return await GetSubredditDataAsync(path, before, after, show, limit);
     }
 
     // TODO: Add handler parameter
-    public async Task MonitorSubredditPostsAsync(string subredditId, CancellationToken cancellationToken)
+    public async Task MonitorPostsAsync(
+        SubredditConfiguration configuration,
+        Action<Link> newPostHandler,
+        CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(subredditId))
+        if (string.IsNullOrWhiteSpace(configuration.Name))
         {
-            throw new ArgumentNullException(nameof(subredditId));
+            throw new ConfigurationException<SubredditConfiguration>();
         }
+
+        var startEpochSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var startingPost = string.Empty;
+        var watchedPosts = new Dictionary<string, int>();
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            int count;
-            var after = string.Empty;
+            int pertinentPostCount = 0;
+            var paginationPost = string.Empty;
 
             do
             {
-                var posts = await this.GetSubredditPostsNewAsync(subredditId, after: after);
-                var firstPost = posts?.Root?.Data?.Children?.FirstOrDefault();
-                var lastPost = posts?.Root?.Data?.Children?.LastOrDefault();
+                var response = await this.GetPostsNewAsync(configuration, startingPost, paginationPost);
+                var posts = response?.Root?.Data?.Children ?? Enumerable.Empty<DataContainer<Link>>();
+
+                foreach (var post in posts)
+                {
+                    if (configuration.AfterStartOnly
+                        && post.Data?.CreatedUtcEpoch < startEpochSeconds)
+                    {
+                        startingPost = post.Data?.Name;
+                    }
+                    else if (post.Data is not null)
+                    {
+                        pertinentPostCount++;
+                        // TODO: Add to monitor list/check for change
+                        newPostHandler(post.Data);
+                    }
+                }
+
+
+                var firstPost = response?.Root?.Data?.Children?.FirstOrDefault();
+                var lastPost = response?.Root?.Data?.Children?.LastOrDefault();
                 var firstEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)firstPost?.Data?.CreatedUtcEpoch ?? 0);
                 var lastEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)lastPost?.Data?.CreatedUtcEpoch ?? 0);
                 this._logger.LogInformation(
                     "Posts for {subredditId} : {count}\n\tFirst {firstName} {firstEpoch}\n\tLast {lastName} {lastEpoch}",
-                    subredditId,
-                    posts?.Root?.Data?.Count,
+                    configuration.Name,
+                    response?.Root?.Data?.Count,
                     firstPost?.Data?.Name,
                     firstEpoch,
                     lastPost?.Data?.Name,
                     lastEpoch);
-                count = posts?.Root?.Data?.Count ?? 0;
-                after = lastPost?.Data?.Name ?? string.Empty;
+                pertinentPostCount = response?.Root?.Data?.Count ?? 0;
+                paginationPost = lastPost?.Data?.Name ?? string.Empty;
 
                 // TODO: Call handler
 
                 // TODO: Replace with calculated sleep
                 Thread.Sleep(1500);
             }
-            while (count == LIMIT);
+            while (pertinentPostCount == LIMIT);
         }
     }
 
@@ -92,24 +118,31 @@ public class RedditClient : IRedditClient, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private async Task<ApiResponse<Listing<T>>> GetSubredditDataAsync<T>(
+    private async Task<ApiResponse> GetSubredditDataAsync(
         string path,
         string before = "",
         string after = "",
         string show = "all",
-        int limit = 100) where T : Link
+        int limit = LIMIT)
     {
-        var request = new RestRequest(path)
-            .AddParameter(ParameterStrings.Before, before)
-            .AddParameter(ParameterStrings.After, after)
+        var request = new RestRequest(path)            
             .AddParameter(ParameterStrings.Show, show)
             .AddParameter(ParameterStrings.Limit, limit)
             .AddParameter(ParameterStrings.RawJson, 1);
 
+        if (!string.IsNullOrWhiteSpace(before))
+        {
+            request.AddParameter(ParameterStrings.Before, before);
+        }
+        else if (!string.IsNullOrWhiteSpace(after))
+        {
+            request.AddParameter(ParameterStrings.After, after);
+        }
+
         var response = await this._client.ExecuteGetAsync(request);
         var listing = string.IsNullOrWhiteSpace(response?.Content)
             ? default
-            : JsonSerializer.Deserialize<DataContainer<Listing<T>>>(
+            : JsonSerializer.Deserialize<DataContainer<Listing>>(
                 response.Content,
                 new JsonSerializerOptions()
                 {
@@ -117,7 +150,7 @@ public class RedditClient : IRedditClient, IDisposable
                     PropertyNameCaseInsensitive = true,
                 });
 
-        var output = new ApiResponse<Listing<T>>()
+        var output = new ApiResponse()
         {
             RateLimitRemaining = ParseRateLimitRemaining(response),
             RateLimitUsed = ParseRateLimitUsed(response),

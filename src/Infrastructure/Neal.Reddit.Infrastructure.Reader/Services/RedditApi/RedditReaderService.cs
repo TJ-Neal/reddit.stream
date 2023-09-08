@@ -3,9 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client.Interfaces;
-using Reddit.Models;
-using System.Collections.Concurrent;
-using System.Diagnostics;
+using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Exceptions;
 
 namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 
@@ -35,26 +34,23 @@ public class RedditReaderService : BackgroundService
         try
         {
             var subreddits = _configuration
-                .GetSection("Subreddits")
-                ?.Get<string[]>();
+                .GetSection(nameof(SubredditConfiguration))
+                ?.Get<List<SubredditConfiguration>>();
 
             if (subreddits is null
-                || subreddits.Length < 1)
+                || subreddits.Count < 1)
             {
-                return;
+                throw new ConfigurationException<SubredditConfiguration>();
             }
 
-            while (!cancellationToken.IsCancellationRequested)
+            var tasks = new List<Task>();
+
+            foreach (var subreddit in subreddits)
             {
-                var tasks = new List<Task>();
-
-                foreach (var subreddit in subreddits)
-                {
-                    tasks.Add(this._redditClient.MonitorSubredditPostsAsync(subreddit, cancellationToken));
-                }
-
-                await Task.WhenAll(tasks);
+                tasks.Add(this._redditClient.MonitorPostsAsync(subreddit, cancellationToken));
             }
+
+            await Task.WhenAll(tasks);
 
             this._logger.LogInformation(CommonLogMessages.CancelRequested);
         }

@@ -1,16 +1,15 @@
 ﻿using Neal.Reddit.Client.Models;
-using Neal.Reddit.Core.Entities.Reddit;
 
 namespace Neal.Reddit.Client.Interfaces;
 
 public interface IRedditClient
 {
-    public Task<ApiResponse<Listing<Link>>> GetSubredditPostsNewAsync(
-        string subredditId,
+    public Task<ApiResponse> GetPostsNewAsync(
+        SubredditConfiguration configuration,
         string before = "",
         string after = "",
         string show = "all",
         int limit = 100);
 
-    public Task MonitorSubredditPostsAsync(string subredditId, CancellationToken cancellationToken);
+    public Task MonitorPostsAsync(SubredditConfiguration configuration, CancellationToken cancellationToken);
 }

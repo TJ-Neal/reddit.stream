@@ -2,7 +2,7 @@
 
 namespace Neal.Reddit.Core.Entities.Reddit;
 
-public record Listing<T> where T : Link
+public record Listing
 {
     public string After { get; set; } = string.Empty;
 
@@ -11,5 +11,5 @@ public record Listing<T> where T : Link
     [JsonPropertyName("dist")]
     public int Count { get; set; }
 
-    public IEnumerable<DataContainer<T>>? Children { get; set; }
+    public IEnumerable<DataContainer<Link>>? Children { get; set; }
 }

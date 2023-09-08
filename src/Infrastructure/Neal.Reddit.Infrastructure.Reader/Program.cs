@@ -7,6 +7,7 @@ using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Exceptions;
 using Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 using RestSharp.Authenticators;
 
@@ -39,8 +40,8 @@ try
 
     var inMemoryCredentialStore = configuration
         .GetSection(nameof(Credentials))
-        .Get<Credentials>()
-            ?? new Credentials();
+        ?.Get<Credentials>()
+            ?? new();
 
     var authenticator = new RedditAuthenticator(inMemoryCredentialStore);
 

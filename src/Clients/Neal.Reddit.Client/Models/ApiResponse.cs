@@ -2,7 +2,7 @@
 
 namespace Neal.Reddit.Client.Models;
 
-public record ApiResponse<T> where T : class
+public record ApiResponse
 {
     public double RateLimitRemaining { get; init; }
 
@@ -10,5 +10,5 @@ public record ApiResponse<T> where T : class
 
     public int RateLimitReset { get; init; }
 
-    public DataContainer<T>? Root { get; init; }
+    public DataContainer<Listing>? Root { get; init; }
 }
