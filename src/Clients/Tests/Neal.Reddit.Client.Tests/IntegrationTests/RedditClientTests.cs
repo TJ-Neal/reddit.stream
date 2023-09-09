@@ -10,13 +10,16 @@ public class RedditClientTests : IClassFixture<RedditClientFixture>
     private readonly RedditClientFixture _fixture;
 
     public RedditClientTests(RedditClientFixture fixture) =>
-        this._fixture = fixture;
-
+        _fixture = fixture;
+        
     [Fact]
+    [Trait("Category", "Reddit")]
+    [Trait("Category", "Posts")]
+    [Trait("Category", "Integration")]
     public async Task RedditClient_GetPostsNewAsync_Success()
     {
         // Arrange
-        var client = this._fixture.Client;
+        var client = _fixture.Client;
         var configuration = new SubredditConfiguration()
         {
             Name = "gaming",
@@ -36,10 +39,14 @@ public class RedditClientTests : IClassFixture<RedditClientFixture>
     }
 
     [Fact]
+    [Trait("Category", "Reddit")]
+    [Trait("Category", "Posts")]
+    [Trait("Category", "Monitoring")]
+    [Trait("Category", "Integration")]
     public async Task RedditClient_MonitorPostsAysnc_Success()
     {
         // Arrange
-        var client = this._fixture.Client;
+        var client = _fixture.Client;
         var cancellationSource = new CancellationTokenSource();
         var cancellationToken = cancellationSource.Token;
         var configuration = new SubredditConfiguration()
@@ -63,10 +70,14 @@ public class RedditClientTests : IClassFixture<RedditClientFixture>
     }
 
     [Fact]
+    [Trait("Category", "Reddit")]
+    [Trait("Category", "Posts")]
+    [Trait("Category", "Monitoring")]
+    [Trait("Category", "Integration")]
     public async Task RedditClient_MonitorPostsAysnc_AfterStartOnly_Success()
     {
         // Arrange
-        var client = this._fixture.Client;
+        var client = _fixture.Client;
         var cancellationSource = new CancellationTokenSource();
         var cancellationToken = cancellationSource.Token;
         var configuration = new SubredditConfiguration()

@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
 using Neal.Reddit.Core.Entities.Exceptions;
+using Neal.Reddit.Core.Entities.Reddit;
 
 namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 
@@ -47,16 +49,26 @@ public class RedditReaderService : BackgroundService
 
             foreach (var subreddit in subreddits)
             {
-                tasks.Add(this._redditClient.MonitorPostsAsync(subreddit, cancellationToken));
+                tasks
+                    .Add(_redditClient
+                        .MonitorPostsAsync(
+                            subreddit, 
+                            HandleNewPostAsync,
+                            cancellationToken));
             }
 
             await Task.WhenAll(tasks);
 
-            this._logger.LogInformation(CommonLogMessages.CancelRequested);
+            _logger.LogInformation(CommonLogMessages.CancelRequested);
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
         }
+    }
+
+    private async Task HandleNewPostAsync(Link post)
+    {
+        _logger.LogInformation("Post {post}", post);
     }
 }

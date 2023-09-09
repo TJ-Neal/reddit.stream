@@ -1,4 +1,5 @@
 ﻿using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Reddit;
 
 namespace Neal.Reddit.Client.Interfaces;
 
@@ -11,5 +12,8 @@ public interface IRedditClient
         string show = "all",
         int limit = 100);
 
-    public Task MonitorPostsAsync(SubredditConfiguration configuration, CancellationToken cancellationToken);
+    public Task MonitorPostsAsync(
+        SubredditConfiguration configuration,
+        Func<Link, Task> newPostHandler, 
+        CancellationToken cancellationToken);
 }

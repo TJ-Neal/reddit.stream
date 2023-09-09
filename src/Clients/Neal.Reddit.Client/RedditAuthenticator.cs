@@ -27,14 +27,14 @@ public class RedditAuthenticator : AuthenticatorBase
             throw new ConfigurationException<Credentials>();
         }
 
-        this._clientId = credentials.ClientId;
-        this._clientSecret = credentials.ClientSecret;
-        this._deviceId = credentials.DeviceId;
+        _clientId = credentials.ClientId;
+        _clientSecret = credentials.ClientSecret;
+        _deviceId = credentials.DeviceId;
     }
 
     protected override async ValueTask<Parameter> GetAuthenticationParameter(string accessToken)
     {
-        if (string.IsNullOrEmpty(this.Token) || this._expires <= DateTimeOffset.Now)
+        if (string.IsNullOrEmpty(this.Token) || _expires <= DateTimeOffset.Now)
         {
             await this.GetAuthenticationAsync();
         }
@@ -46,12 +46,12 @@ public class RedditAuthenticator : AuthenticatorBase
     {
         var options = new RestClientOptions(UrlStrings.RedditBaseUrl)
         {
-            Authenticator = new HttpBasicAuthenticator(this._clientId, this._clientSecret)
+            Authenticator = new HttpBasicAuthenticator(_clientId, _clientSecret)
         };
         var client = new RestClient(options);
         var request = new RestRequest(UrlStrings.TokenPartialUrl)
             .AddParameter(HeaderStrings.GrantTypeKey, HeaderStrings.GrantTypeValue)
-            .AddParameter(HeaderStrings.DeviceIdKey, this._deviceId);
+            .AddParameter(HeaderStrings.DeviceIdKey, _deviceId);
         var response = await client.ExecutePostAsync(request);
 
         if (!response.IsSuccessStatusCode
@@ -63,6 +63,6 @@ public class RedditAuthenticator : AuthenticatorBase
         var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(response.Content);
 
         this.Token = $"{tokenResponse!.TokenType} {tokenResponse!.AccessToken}";
-        this._expires = tokenResponse.CreatedAt.AddSeconds(tokenResponse.ExpiresIn);
+        _expires = tokenResponse.CreatedAt.AddSeconds(tokenResponse.ExpiresIn);
     }
 }

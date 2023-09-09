@@ -19,15 +19,17 @@ public class RedditClient : IRedditClient, IDisposable
 
     private readonly ILogger<RedditClient> _logger;
 
-    public RedditClient(IAuthenticator authenticator, ILogger<RedditClient> logger)
+    public RedditClient(
+        IAuthenticator authenticator, 
+        ILogger<RedditClient> logger)
     {
         var options = new RestClientOptions(UrlStrings.RedditOathBaseUrl)
         {
             Authenticator = authenticator
         };
 
-        this._client = new RestClient(options);
-        this._logger = logger;
+        _client = new RestClient(options);
+        _logger = logger;
     }
 
     public async Task<ApiResponse> GetPostsNewAsync(
@@ -50,71 +52,21 @@ public class RedditClient : IRedditClient, IDisposable
     // TODO: Add handler parameter
     public async Task MonitorPostsAsync(
         SubredditConfiguration configuration,
-        Action<Link> newPostHandler,
+        Func<Link, Task> newPostHandler,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(configuration.Name))
-        {
-            throw new ConfigurationException<SubredditConfiguration>();
-        }
+        var monitor = new PostMonitor(
+            this, 
+            configuration, 
+            newPostHandler, 
+            cancellationToken);
 
-        var startEpochSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var startingPost = string.Empty;
-        var watchedPosts = new Dictionary<string, int>();
-
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            int pertinentPostCount = 0;
-            var paginationPost = string.Empty;
-
-            do
-            {
-                var response = await this.GetPostsNewAsync(configuration, startingPost, paginationPost);
-                var posts = response?.Root?.Data?.Children ?? Enumerable.Empty<DataContainer<Link>>();
-
-                foreach (var post in posts)
-                {
-                    if (configuration.AfterStartOnly
-                        && post.Data?.CreatedUtcEpoch < startEpochSeconds)
-                    {
-                        startingPost = post.Data?.Name;
-                    }
-                    else if (post.Data is not null)
-                    {
-                        pertinentPostCount++;
-                        // TODO: Add to monitor list/check for change
-                        newPostHandler(post.Data);
-                    }
-                }
-
-
-                var firstPost = response?.Root?.Data?.Children?.FirstOrDefault();
-                var lastPost = response?.Root?.Data?.Children?.LastOrDefault();
-                var firstEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)firstPost?.Data?.CreatedUtcEpoch ?? 0);
-                var lastEpoch = DateTimeOffset.FromUnixTimeSeconds((int?)lastPost?.Data?.CreatedUtcEpoch ?? 0);
-                this._logger.LogInformation(
-                    "Posts for {subredditId} : {count}\n\tFirst {firstName} {firstEpoch}\n\tLast {lastName} {lastEpoch}",
-                    configuration.Name,
-                    response?.Root?.Data?.Count,
-                    firstPost?.Data?.Name,
-                    firstEpoch,
-                    lastPost?.Data?.Name,
-                    lastEpoch);
-                pertinentPostCount = response?.Root?.Data?.Count ?? 0;
-                paginationPost = lastPost?.Data?.Name ?? string.Empty;
-
-                // TODO: Call handler
-
-                // TODO: Replace with calculated sleep
-                Thread.Sleep(1500);
-            }
-            while (pertinentPostCount == LIMIT);
-        }
+        await monitor.StartAsync();
     }
 
     public void Dispose()
     {
-        this._client?.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -139,7 +91,7 @@ public class RedditClient : IRedditClient, IDisposable
             request.AddParameter(ParameterStrings.After, after);
         }
 
-        var response = await this._client.ExecuteGetAsync(request);
+        var response = await _client.ExecuteGetAsync(request);
         var listing = string.IsNullOrWhiteSpace(response?.Content)
             ? default
             : JsonSerializer.Deserialize<DataContainer<Listing>>(
