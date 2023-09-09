@@ -16,4 +16,6 @@ public struct CommonLogMessages
     public const string StartingLoop = "Starting background loop...";
 
     public const string Flushed = "{name} is being flushed.";
+
+    public const string HttpRequestError = "Error executing http request {statusCode} - {statusDescription}";
 }

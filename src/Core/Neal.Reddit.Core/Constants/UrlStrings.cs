@@ -1,4 +1,4 @@
-﻿namespace Neal.Reddit.Application.Constants.Reddit;
+﻿namespace Neal.Reddit.Core.Constants;
 
 public struct UrlStrings
 {
@@ -10,5 +10,5 @@ public struct UrlStrings
 
     public const string SubredditPartialUrl = "/r";
 
-    public const string NewPartialUrl = "/new.json";
+    public const string Json = ".json";
 }

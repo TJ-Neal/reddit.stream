@@ -1,4 +1,4 @@
-﻿namespace Neal.Reddit.Application.Constants.Reddit;
+﻿namespace Neal.Reddit.Core.Constants;
 
 public struct HeaderStrings
 {

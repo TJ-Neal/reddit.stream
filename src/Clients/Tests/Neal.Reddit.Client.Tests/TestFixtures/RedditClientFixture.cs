@@ -3,14 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
-using Neal.Reddit.Client.Tests.Clients;
+using Neal.Reddit.Client.Tests.Tests;
 using RestSharp.Authenticators;
 
 namespace Neal.Reddit.Client.Tests.TestFixtures;
 
 public class RedditClientFixture
 {
-    private readonly ILoggerFactory _loggerFactory = LoggerFactory.Create(logger => logger.AddConsole());
+    private readonly ILoggerFactory loggerFactory = LoggerFactory.Create(logger => logger.AddConsole());
 
     public IRedditClient Client { get; private set; }
 
@@ -26,7 +26,7 @@ public class RedditClientFixture
         var authenticator = new RedditAuthenticator(credentials);
 
         this.Client = new ServiceCollection()
-            .AddSingleton(_loggerFactory.CreateLogger<RedditClient>())
+            .AddSingleton(this._loggerFactory.CreateLogger<RedditClient>())
             .AddSingleton<IAuthenticator>(authenticator)
             .AddSingleton(typeof(IRedditClient), typeof(RedditClient))
             .BuildServiceProvider()

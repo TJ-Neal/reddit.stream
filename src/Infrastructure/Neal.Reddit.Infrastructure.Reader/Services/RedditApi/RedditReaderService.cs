@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client.Interfaces;
-using Neal.Reddit.Client.Models;
+using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Core.Entities.Exceptions;
 using Neal.Reddit.Core.Entities.Reddit;
 
@@ -13,29 +13,29 @@ namespace Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 public class RedditReaderService : BackgroundService
 {
 
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration configuration;
 
-    private readonly ILogger<RedditReaderService> _logger;
+    private readonly ILogger<RedditReaderService> logger;
 
-    private readonly IRedditClient _redditClient;
+    private readonly IRedditClient redditClient;
 
     public RedditReaderService(
         IConfiguration configuration,
         ILogger<RedditReaderService> logger,
         IRedditClient redditClient)
     {
-        _configuration = configuration;
-        _logger = logger;
-        _redditClient = redditClient;
+        this.configuration = configuration;
+        this.logger = logger;
+        this.redditClient = redditClient;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation(CommonLogMessages.StartingLoop);
+        logger.LogInformation(CommonLogMessages.StartingLoop);
 
         try
         {
-            var subreddits = _configuration
+            var subreddits = configuration
                 .GetSection(nameof(SubredditConfiguration))
                 ?.Get<List<SubredditConfiguration>>();
 
@@ -49,26 +49,25 @@ public class RedditReaderService : BackgroundService
 
             foreach (var subreddit in subreddits)
             {
-                tasks
-                    .Add(_redditClient
-                        .MonitorPostsAsync(
-                            subreddit, 
-                            HandleNewPostAsync,
-                            cancellationToken));
+                tasks.Add(
+                    redditClient.MonitorPostsAsync(
+                        subreddit, 
+                        HandleNewPostAsync,
+                        cancellationToken));
             }
 
             await Task.WhenAll(tasks);
 
-            _logger.LogInformation(CommonLogMessages.CancelRequested);
+            logger.LogInformation(CommonLogMessages.CancelRequested);
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
+            logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
         }
     }
 
     private async Task HandleNewPostAsync(Link post)
     {
-        _logger.LogInformation("Post {post}", post);
+        logger.LogInformation("Post {post}", post);
     }
 }

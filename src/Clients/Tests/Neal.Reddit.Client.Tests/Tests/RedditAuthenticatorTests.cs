@@ -2,9 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Neal.Reddit.Client.Models;
 using Neal.Reddit.Client.Tests.Helpers;
+using Neal.Reddit.Core.Entities.Exceptions;
 using RestSharp;
 
-namespace Neal.Reddit.Client.Tests.Clients;
+namespace Neal.Reddit.Client.Tests.Tests;
 
 public class RedditAuthenticatorTests
 {
@@ -29,12 +30,12 @@ public class RedditAuthenticatorTests
         var credentials = new Credentials();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new RedditAuthenticator(credentials));
+        Assert.Throws<ConfigurationException<Credentials>>(() => new RedditAuthenticator(credentials));
     }
 
     [Fact]
     public async Task Reddit_Authentication_GetAuthenticationParameter_Success()
-    {    
+    {
         // Arrange
         var authenticator = new RedditAuthenticatorHelper(_credentials);
 
