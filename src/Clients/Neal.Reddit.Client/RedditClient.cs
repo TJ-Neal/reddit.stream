@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
+using Neal.Reddit.Client.Extensions;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
 using Neal.Reddit.Core.Constants;
@@ -20,13 +21,19 @@ public class RedditClient : IRedditClient, IDisposable
 {
     #region Fields
 
+    #region Static
+
+    private static readonly ConcurrentDictionary<Guid, int> runningClients = new();
+
+    #endregion
+
     #region Injected
 
     private readonly ILogger<RedditClient> logger;
 
-    private readonly CancellationToken cancellationToken;
-
     #endregion
+
+    private readonly Guid identifier = new();
 
     private readonly RestClient restClient;
 
@@ -63,25 +70,30 @@ public class RedditClient : IRedditClient, IDisposable
         }
 
         var postRequest = new RedditPostRequest(configuration, postHandler);
-        var shouldMonitor = configuration.MonitorType 
-            is MonitorTypes.AfterStartOnly or MonitorTypes.All;
 
         do
         {
             await this.RequestPostsAsync(postRequest, cancellationToken);
         }
         while (!cancellationToken.IsCancellationRequested
-            && shouldMonitor);
+            && postRequest.ShouldMonitor);
     }
 
     private async Task RequestPostsAsync(RedditPostRequest postRequest, CancellationToken cancellationToken)
     {        
-        int pertinentPostCount = 0;
-        var paginationPost = string.Empty;
-        var path = $"{UrlStrings.SubredditPartialUrl}/{postRequest.Name}/{postRequest.Sort}{UrlStrings.Json}";
+        string paginationPost;
+        var path = $"{UrlStrings.SubredditPartialUrl}/{postRequest.Name}/{postRequest.Sort}{UrlStrings.Json}".ToLower();
+        var requests = 0;
 
         do
         {
+            runningClients.AddOrUpdate(
+                this.identifier,
+                ++requests,
+                (_, value) => Math.Max(value, ++requests));
+            paginationPost = string.Empty;
+
+            var pertinentPostCount = 0;
             var response = await GetSubredditDataAsync(
                 path,
                 this.startingPost,
@@ -95,8 +107,18 @@ public class RedditClient : IRedditClient, IDisposable
                 ?.Children 
                     ?? Enumerable.Empty<DataContainer<Link>>();
 
+            this.logger.LogInformation(
+                "Request response received\n\t{posts} posts returned for Subreddit\n\t{@subreddit}", 
+                posts.Count(),
+                postRequest);
+
             foreach (var post in posts)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 if (postRequest.MonitorType == MonitorTypes.AfterStartOnly
                     && post.Data?.CreatedUtcEpoch < this.startEpochSeconds)
                 {
@@ -111,10 +133,6 @@ public class RedditClient : IRedditClient, IDisposable
                 {
                     pertinentPostCount++;
 
-                    var lastPost = response?.Root?.Data?.Children?.LastOrDefault();
-
-                    paginationPost = lastPost?.Data?.Name ?? string.Empty;
-
                     var shouldUpdate = watchedPosts.TryGetValue(post.Data.Name, out int upvotes)
                         ? upvotes < post.Data.Ups
                         : watchedPosts.TryAdd(post.Data.Name, post.Data.Ups);
@@ -126,42 +144,83 @@ public class RedditClient : IRedditClient, IDisposable
                 }
             }
 
-            // TODO: Replace with calculated sleep
-            Thread.Sleep(1500);
+            var wait = GetThreadSleep(response, postRequest.PerRequestLimit, posts.Count());
+
+            this.logger.LogInformation(
+                CommonLogMessages.TaskDelay, 
+                wait.TotalSeconds, 
+                postRequest.Name);
+
+            await Task.Delay(wait, cancellationToken);
+
+            if (postRequest.Sort == Sorts.New
+                && pertinentPostCount < postRequest.PerRequestLimit)
+            {
+                paginationPost = string.Empty;
+            }
         }
-        while (pertinentPostCount == postRequest.PerRequestLimit 
-            && !cancellationToken.IsCancellationRequested);
+        while (!cancellationToken.IsCancellationRequested
+            && !string.IsNullOrWhiteSpace(paginationPost));
+
+        // Reset running client request count to number of requests required in the last loop
+        runningClients[this.identifier] = requests;
     }
 
     public void Dispose()
     {
+        if (runningClients.TryGetValue(this.identifier, out var value))
+        {
+            runningClients.TryRemove(new(this.identifier, value));
+        }
+
         restClient?.Dispose();
         GC.SuppressFinalize(this);
     }
 
+    private static TimeSpan GetThreadSleep(ApiResponse? response, int perRequestLimit, int postCount)
+    {
+        if (response is null)
+        {
+            return TimeSpan.FromMilliseconds(Defaults.RetryDelayMilliseconds);
+        }                
+        
+        var runningClientRequests = Math.Max(runningClients.Sum(client => client.Value), 1); // prevent divide by 0
+        var limitRemaining = Math.Max(response.RateLimitRemaining, 1); // prevent divide by 0
+        var limitingDelay = response.RateLimitReset / limitRemaining / runningClientRequests; // spread client requests across rate limit
+        var postCountRatio = (perRequestLimit - postCount) / 100; // convert to percentage
+        var postCountDelay = postCountRatio * Defaults.NoPostDelaySeconds; // increase delay based on posts returned
+
+        return TimeSpan.FromSeconds(limitingDelay + postCountDelay);
+    }
+
     private async Task<ApiResponse> GetSubredditDataAsync(
         string path,
-        string before,
-        string after,
+        GetOrPostParameter paginationParameter,
         string show,
         int limit,
         CancellationToken cancellationToken)
     {
-        var request = new RestRequest(path)            
+        var request = new RestRequest(path)
             .AddParameter(ParameterStrings.Show, show)
             .AddParameter(ParameterStrings.Limit, limit)
-            .AddParameter(ParameterStrings.RawJson, 1);
+            .AddParameter(ParameterStrings.RawJson, 1)
+            .AddParameter(paginationParameter);
 
-        if (!string.IsNullOrWhiteSpace(before))
-        {
-            request = request.AddParameter(ParameterStrings.Before, before);
-        }
-        else if (!string.IsNullOrWhiteSpace(after))
-        {
-            request = request.AddParameter(ParameterStrings.After, after);
-        }
+        this.logger.LogInformation("Executing request\n\t{@request}\n\t{startingPost}", request.Parameters, this.startingPost);
 
         var response = await restClient.ExecuteGetAsync(request, cancellationToken);
+
+        if (response is not null
+            && response.StatusCode == HttpStatusCode.TooManyRequests)
+        {
+            var wait = TimeSpan.FromSeconds(response.ParseRateLimitReset());
+
+            this.logger.LogWarning(CommonLogMessages.TaskDelay, wait.TotalSeconds, HttpStatusCode.TooManyRequests);
+
+            await Task.Delay(wait, cancellationToken);
+
+            return await GetSubredditDataAsync(path, before, after, show, limit, cancellationToken);  
+        }         
 
         if (response is null
             || response.StatusCode < HttpStatusCode.OK
@@ -193,52 +252,12 @@ public class RedditClient : IRedditClient, IDisposable
 
         var output = new ApiResponse()
         {
-            RateLimitRemaining = ParseRateLimitRemaining(response),
-            RateLimitUsed = ParseRateLimitUsed(response),
-            RateLimitReset = ParseRateLimitReset(response),
+            RateLimitRemaining = response?.ParseRateLimitRemaining() ?? 0,
+            RateLimitUsed = response?.ParseRateLimitUsed() ?? 0,
+            RateLimitReset = response?.ParseRateLimitReset() ?? 0,
             Root = listing
         };
 
         return output;
-    }
-
-    private static double ParseRateLimitRemaining(RestResponse? response)
-    {
-        var rateLimitRemainingHeader = response
-            ?.Headers
-            ?.Where(x => x.Name == "x-ratelimit-remaining")
-            .Select(x => x.Value)
-            .FirstOrDefault();
-
-        _ = double.TryParse(rateLimitRemainingHeader?.ToString(), out var limitRemaining);
-
-        return limitRemaining;
-    }
-
-    private static int ParseRateLimitUsed(RestResponse? response)
-    {
-        var rateLimitUsedHeader = response
-            ?.Headers
-            ?.Where(x => x.Name == "x-ratelimit-used")
-            .Select(x => x.Value)
-            .FirstOrDefault();
-
-        
-        _ = int.TryParse(rateLimitUsedHeader?.ToString(), out var limitUsed);
-
-        return limitUsed;
-    }
-
-    private static int ParseRateLimitReset(RestResponse? response)
-    {
-        var rateLimitResetHeader = response
-            ?.Headers
-            ?.Where(x => x.Name == "x-ratelimit-reset")
-            .Select(x => x.Value)
-            .FirstOrDefault();
-
-        _ = int.TryParse(rateLimitResetHeader?.ToString(), out var limitReset);
-
-        return limitReset;
-    }
+    }    
 }

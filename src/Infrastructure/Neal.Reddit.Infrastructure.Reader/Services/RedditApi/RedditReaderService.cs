@@ -50,8 +50,8 @@ public class RedditReaderService : BackgroundService
             foreach (var subreddit in subreddits)
             {
                 tasks.Add(
-                    redditClient.MonitorPostsAsync(
-                        subreddit, 
+                    redditClient.GetPostsAsync(
+                        subreddit,
                         HandleNewPostAsync,
                         cancellationToken));
             }

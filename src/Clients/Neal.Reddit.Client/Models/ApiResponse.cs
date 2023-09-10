@@ -4,7 +4,7 @@ namespace Neal.Reddit.Client.Models;
 
 public record ApiResponse
 {
-    public double RateLimitRemaining { get; init; }
+    public int RateLimitRemaining { get; init; }
 
     public int RateLimitUsed { get; init; }
 

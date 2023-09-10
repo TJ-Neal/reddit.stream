@@ -1,147 +1,56 @@
 ﻿using FluentAssertions;
+using Neal.Reddit.Client.Tests.Helpers;
 using Neal.Reddit.Client.Tests.TestFixtures;
 using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Core.Entities.Exceptions;
-using Neal.Reddit.Core.Enums;
-using System.Net;
+using Neal.Reddit.Core.Entities.Reddit;
 
 namespace Neal.Reddit.Client.Tests.Tests;
 
 public class RedditClientTests : IClassFixture<RedditClientFixture>
 {
-    private readonly RedditClientFixture _fixture;
+    private readonly RedditClientFixture fixture;
 
     public RedditClientTests(RedditClientFixture fixture) =>
-        _fixture = fixture;
+        this.fixture = fixture;
 
-    [Fact]
+    [Theory]
     [Trait("Category", "Reddit")]
     [Trait("Category", "Posts")]
     [Trait("Category", "Integration")]
-    public async Task RedditClient_GetPostsAsync_NameOnly_Configuration_Success()
+    [ClassData(typeof(ClientTestData))]
+    public async Task RedditClient_GetPostsAsync_Configuration_Success(SubredditConfiguration configuration)
     {
         // Arrange
-        var client = _fixture.Client;
-        var configuration = new SubredditConfiguration()
-        {
-            Name = "gaming"
-        };
-
-        // Act
-        var result = await client.GetPostsAsync(configuration);
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.Root.Should().NotBeNull();
-        result!.Root!.Kind.Should().Be(Kind.Listing);
-        result.Root.Data.Should().NotBeNull();
-        result!.Root.Data!.Children.Should().NotBeNull();
-        result.Root.Data.Children.Should().NotBeEmpty();
-        result.Root.Data.Children.Should().HaveCountLessThanOrEqualTo(configuration.PerRequestLimit);
-    }
-
-    [Fact]
-    [Trait("Category", "Reddit")]
-    [Trait("Category", "Posts")]
-    [Trait("Category", "Integration")]
-    public async Task RedditClient_GetPostsAsync_Full_Configuration_Success()
-    {
-        // Arrange
-        var client = _fixture.Client;
-        var configuration = new SubredditConfiguration()
-        {
-            Name = "gaming",
-            AfterStartOnly = true,
-            PerRequestLimit = 50,
-        };
-
-        // Act
-        var result = await client.GetPostsAsync(configuration);
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.Root.Should().NotBeNull();
-        result!.Root!.Kind.Should().Be(Kind.Listing);
-        result.Root.Data.Should().NotBeNull();
-        result!.Root.Data!.Children.Should().NotBeNull();
-        result.Root.Data.Children.Should().NotBeEmpty();
-        result.Root.Data.Children.Should().HaveCountLessThanOrEqualTo(configuration.PerRequestLimit);
-    }
-
-    [Fact]
-    [Trait("Category", "Reddit")]
-    [Trait("Category", "Posts")]
-    [Trait("Category", "Integration")]
-    public async Task RedditClient_GetPostsAsync_Empty_Configuration_ShouldThrow()
-    {
-        // Arrange
-        var client = _fixture.Client;
-        var configuration = new SubredditConfiguration();
-
-        // Act & Assert
-        await Assert.ThrowsAsync<ConfigurationException<SubredditConfiguration>>(
-            async () => await client.GetPostsAsync(configuration));
-    }
-
-    [Fact]
-    [Trait("Category", "Reddit")]
-    [Trait("Category", "Posts")]
-    [Trait("Category", "Monitoring")]
-    [Trait("Category", "Integration")]
-    public async Task RedditClient_MonitorPostsAysnc_Success()
-    {
-        // Arrange
-        var client = _fixture.Client;
-        var cancellationSource = new CancellationTokenSource();
-        var cancellationToken = cancellationSource.Token;
-        var configuration = new SubredditConfiguration()
-        {
-            Name = "gaming",
-            AfterStartOnly = false
-        };
+        var client = this.fixture.Client;
+        var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        var posts = new List<Link>();
         bool callbackCalled = false;
-        Task asyncCallback()
+        Task asyncCallback(Link post)
         {
-            cancellationSource.Cancel();
+            posts.Add(post);
+
+            cancellationTokenSource.Cancel();
             callbackCalled = true;
 
             return Task.CompletedTask;
         }
-
-        // Act
-        // TODO: Call monitor with callback as delegate
-
-        // Assert
-    }
-
-    [Fact]
-    [Trait("Category", "Reddit")]
-    [Trait("Category", "Posts")]
-    [Trait("Category", "Monitoring")]
-    [Trait("Category", "Integration")]
-    public async Task RedditClient_MonitorPostsAysnc_AfterStartOnly_Success()
-    {
-        // Arrange
-        var client = _fixture.Client;
-        var cancellationSource = new CancellationTokenSource();
-        var cancellationToken = cancellationSource.Token;
-        var configuration = new SubredditConfiguration()
+        
+        if (string.IsNullOrWhiteSpace(configuration.Name))
         {
-            Name = "gaming",
-            AfterStartOnly = true
-        };
-        bool callbackCalled = false;
-        var asyncCallback = delegate ()
+            // Act & Assert
+            await Assert.ThrowsAsync<ConfigurationException<SubredditConfiguration>>(
+                async () => await client.GetPostsAsync(configuration, asyncCallback, cancellationToken));
+        }
+        else
         {
-            cancellationSource.Cancel();
-            callbackCalled = true;
+            // Act
+            await client.GetPostsAsync(configuration, asyncCallback, cancellationToken);
 
-            return Task.CompletedTask;
-        };
-
-        // Act
-        // TODO: Call monitor with callback as delegate
-
-        // Assert
+            // Assert
+            callbackCalled.Should().BeTrue();
+            posts.Should().NotBeEmpty();
+        }
     }
 }

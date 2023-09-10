@@ -26,7 +26,7 @@ public class RedditClientFixture
         var authenticator = new RedditAuthenticator(credentials);
 
         this.Client = new ServiceCollection()
-            .AddSingleton(this._loggerFactory.CreateLogger<RedditClient>())
+            .AddSingleton(this.loggerFactory.CreateLogger<RedditClient>())
             .AddSingleton<IAuthenticator>(authenticator)
             .AddSingleton(typeof(IRedditClient), typeof(RedditClient))
             .BuildServiceProvider()

@@ -12,4 +12,21 @@ public class SubredditConfiguration
     public int PerRequestLimit { get; set; } = Defaults.RateLimit;
 
     public MonitorTypes MonitorType { get; set; } = MonitorTypes.None;
+
+    public bool ShouldMonitor
+    {
+        get => this.MonitorType
+            is MonitorTypes.AfterStartOnly or MonitorTypes.All;
+    }
+
+    public SubredditConfiguration() { }
+
+    public SubredditConfiguration(string name) => 
+        this.Name = name;
+
+    public SubredditConfiguration(string name, MonitorTypes monitorType)
+    {
+        this.Name = name;
+        this.MonitorType = monitorType;
+    }
 }

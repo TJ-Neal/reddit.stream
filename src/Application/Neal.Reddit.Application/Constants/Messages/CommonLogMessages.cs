@@ -18,4 +18,6 @@ public struct CommonLogMessages
     public const string Flushed = "{name} is being flushed.";
 
     public const string HttpRequestError = "Error executing http request {statusCode} - {statusDescription}";
+
+    public const string TaskDelay = "Delaying {wait} seconds as {reason} back-off.";
 }

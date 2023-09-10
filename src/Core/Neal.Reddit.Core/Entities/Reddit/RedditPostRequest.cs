@@ -1,5 +1,6 @@
 ﻿using Neal.Reddit.Core.Constants;
 using Neal.Reddit.Core.Entities.Configuration;
+using Neal.Reddit.Core.Enums;
 
 namespace Neal.Reddit.Core.Entities.Reddit;
 
@@ -14,11 +15,11 @@ public class RedditPostRequest : SubredditConfiguration
         Func<Link, Task> postHandler,
         string show = ParameterStrings.All)
     {
-        MonitorType = configuration.MonitorType;
-        Name = configuration.Name;
-        PerRequestLimit = configuration.PerRequestLimit;
-        PostHandler = postHandler;
-        Show = show;
-        Sort = configuration.Sort;
+        this.MonitorType = configuration.MonitorType;
+        this.Name = configuration.Name;
+        this.PerRequestLimit = configuration.PerRequestLimit;
+        this.PostHandler = postHandler;
+        this.Show = show;
+        this.Sort = configuration.Sort;
     }
 }
