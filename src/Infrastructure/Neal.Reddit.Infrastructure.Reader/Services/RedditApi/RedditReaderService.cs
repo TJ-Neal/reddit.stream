@@ -67,7 +67,7 @@ public class RedditReaderService : BackgroundService
     }
 
     private async Task HandleNewPostAsync(Link post) => this.logger.LogInformation(
-            "Post {postName} in {subreddit} has {upvotes}",
+            "Post {postName} in {subreddit} has {upvotes} ups.",
             post.Name,
             post.Subreddit,
             post.Ups);
