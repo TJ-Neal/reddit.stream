@@ -7,11 +7,9 @@ public struct ExceptionMessages
 {
     public const string DisposeException = "There was an exception while disposing [{0}]\n{1}";
 
-    public const string ErrorDuringLoop = "Failed during loop executions\n\t{0}";
+    public const string ErrorDuringLoop = "Failed during loop executions\n\t{error}";
 
     public const string GenericException = "Exception encountered during execution - {0}";
-
-    public const string InstantiationError = "Exception creating {0}\n\t{1}";
 
     public const string KeyNotFound = "Unable to read key.";
 

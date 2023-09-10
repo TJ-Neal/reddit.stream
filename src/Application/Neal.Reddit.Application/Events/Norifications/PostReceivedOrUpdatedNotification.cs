@@ -7,4 +7,4 @@ namespace Neal.Reddit.Application.Events.Notifications;
 /// Represents a notification for when a post has been received.
 /// </summary>
 /// <param name="Post"></param>
-public record KafkaPostReceivedNotification(Link Post) : INotification;
+public record PostReceivedOrUpdatedNotification(Link Post) : INotification;

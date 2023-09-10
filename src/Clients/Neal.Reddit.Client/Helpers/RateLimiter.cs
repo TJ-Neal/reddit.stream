@@ -1,9 +1,13 @@
 ﻿using Neal.Reddit.Core.Constants;
+using RestSharp;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace Neal.Reddit.Client.Helpers;
 
+/// <summary>
+/// Represents a request rate limiter to maximize the number of requests possible during a reset period.
+/// </summary>
 public class RateLimiter : IDisposable
 {
     private readonly SemaphoreSlim requestPool;
@@ -37,6 +41,13 @@ public class RateLimiter : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// Run the <paramref name="action"/> when an opening is available.
+    /// </summary>
+    /// <typeparam name="T">Return <see cref="Type"/> of the <see cref="Task"/></typeparam>
+    /// <param name="action"><see cref="Task"/> to execute</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns><paramref name="action"/> as <see cref="Task"/> of <typeparamref name="T"/></returns>
     public async Task<T> Run<T>(Task<T> action, CancellationToken cancellationToken)
     {
         await this.Wait(cancellationToken);

@@ -3,8 +3,16 @@ using RestSharp;
 
 namespace Neal.Reddit.Client.Extensions;
 
+/// <summary>
+/// Extends the <see cref="RestResponse"/> class to add additional methods to retrieve rate limiting headers.
+/// </summary>
 public static class RestResponseExtensions
 {
+    /// <summary>
+    /// Parse <paramref name="response"/> for a rate limit remaining header.
+    /// </summary>
+    /// <param name="response"><see cref="RestResponse"/> to parse.</param>
+    /// <returns><c>int</c> representing rate limit remaining, <c>0</c> if no header found</returns>
     public static int ParseRateLimitRemaining(this RestResponse response)
     {
         var rateLimitRemainingHeader = response
@@ -18,6 +26,11 @@ public static class RestResponseExtensions
         return Convert.ToInt32(limitRemaining);
     }
 
+    /// <summary>
+    /// Parse <paramref name="response"/> for a rate limit used header.
+    /// </summary>
+    /// <param name="response"><see cref="RestResponse"/> to parse.</param>
+    /// <returns><c>int</c> representing rate limit used, <c>0</c> if no header found</returns>
     public static int ParseRateLimitUsed(this RestResponse response)
     {
         var rateLimitUsedHeader = response
@@ -32,6 +45,11 @@ public static class RestResponseExtensions
         return limitUsed;
     }
 
+    /// <summary>
+    /// Parse <paramref name="response"/> for a rate limit reset header.
+    /// </summary>
+    /// <param name="response"><see cref="RestResponse"/> to parse.</param>
+    /// <returns><c>int</c> representing rate limit reset, <c>0</c> if no header found</returns>
     public static int ParseRateLimitReset(this RestResponse response)
     {
         var rateLimitResetHeader = response

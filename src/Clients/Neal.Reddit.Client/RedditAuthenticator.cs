@@ -7,6 +7,9 @@ using System.Text.Json;
 
 namespace Neal.Reddit.Client;
 
+/// <summary>
+/// Represents a <see cref="AuthenticatorBase"/> for authenticating <see cref="RestClient"/> requests.
+/// </summary>
 public class RedditAuthenticator : AuthenticatorBase
 {
     private readonly string clientId;

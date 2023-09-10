@@ -8,11 +8,11 @@ public class RedditPostRequest : SubredditConfiguration
 {
     public string Show { get; init; }
 
-    public Func<Link, Task> PostHandler { get; init; }
+    public Func<Link, CancellationToken, Task> PostHandler { get; init; }
 
     public RedditPostRequest(
         SubredditConfiguration configuration,
-        Func<Link, Task> postHandler,
+        Func<Link, CancellationToken, Task> postHandler,
         string show = ParameterStrings.All)
     {
         this.MonitorType = configuration.MonitorType;

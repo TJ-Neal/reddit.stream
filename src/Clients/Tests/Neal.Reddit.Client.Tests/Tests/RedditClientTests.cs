@@ -27,7 +27,7 @@ public class RedditClientTests : IClassFixture<RedditClientFixture>
         var cancellationToken = cancellationTokenSource.Token;
         var posts = new List<Link>();
         bool callbackCalled = false;
-        Task asyncCallback(Link post)
+        Task asyncCallback(Link post, CancellationToken cancelToken)
         {
             posts.Add(post);
 
@@ -46,7 +46,8 @@ public class RedditClientTests : IClassFixture<RedditClientFixture>
         else
         {
             // Act
-            await client.GetPostsAsync(configuration, asyncCallback, cancellationToken);
+            await Assert.ThrowsAsync<TaskCanceledException>(
+                async () => await client.GetPostsAsync(configuration, asyncCallback, cancellationToken));
 
             // Assert
             callbackCalled.Should().BeTrue();

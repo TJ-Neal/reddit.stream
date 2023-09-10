@@ -5,4 +5,9 @@
 /// </summary>
 public struct CacheKeys
 {
+    public const string PostsRepository = "PostsSharedCache";
+
+    public const string PostUpsRepository = "PostUpsSharedCache";
+
+    public const string AuthorsRepository = "AuthorsSharedCache";
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
+using Neal.Reddit.Application.Events.Notifications;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Core.Entities.Exceptions;
@@ -19,14 +20,18 @@ public class RedditReaderService : BackgroundService
 
     private readonly IRedditClient redditClient;
 
+    private readonly IMediator mediator;
+
     public RedditReaderService(
         IConfiguration configuration,
         ILogger<RedditReaderService> logger,
-        IRedditClient redditClient)
+        IRedditClient redditClient,
+        IMediator mediator)
     {
         this.configuration = configuration;
         this.logger = logger;
         this.redditClient = redditClient;
+        this.mediator = mediator;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -66,9 +71,15 @@ public class RedditReaderService : BackgroundService
         }
     }
 
-    private async Task HandleNewPostAsync(Link post) => this.logger.LogInformation(
+    private async Task HandleNewPostAsync(Link post, CancellationToken cancellationToken)
+    {
+        this.logger.LogInformation(
             "Post {postName} in {subreddit} has {upvotes} ups.",
             post.Name,
             post.Subreddit,
             post.Ups);
+
+        await this.mediator
+            .Publish(new PostReceivedOrUpdatedNotification(post), cancellationToken);
+    }
 }

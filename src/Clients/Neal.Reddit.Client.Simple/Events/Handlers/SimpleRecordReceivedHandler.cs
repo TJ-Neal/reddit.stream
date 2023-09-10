@@ -7,7 +7,7 @@ namespace Neal.Reddit.Client.Simple.Events.Handlers;
 /// <summary>
 /// Client handler for the Simple repository for when a record event is raised.
 /// </summary>
-public class SimpleRecordReceivedHandler : INotificationHandler<KafkaPostReceivedNotification>
+public class SimpleRecordReceivedHandler : INotificationHandler<PostReceivedOrUpdatedNotification>
 {
     #region Fields
 
@@ -20,7 +20,7 @@ public class SimpleRecordReceivedHandler : INotificationHandler<KafkaPostReceive
 
     #region INotificationHandler Implementation
 
-    public async Task Handle(KafkaPostReceivedNotification notification, CancellationToken cancellationToken) =>
+    public async Task Handle(PostReceivedOrUpdatedNotification notification, CancellationToken cancellationToken) =>
         await this.recordRepositoryProducerWrapper.ProduceAsync(notification.Post, cancellationToken);
 
     #endregion INotificationHandler Implementation

@@ -19,5 +19,9 @@ public struct CommonLogMessages
 
     public const string HttpRequestError = "Error executing http request {statusCode} - {statusDescription}";
 
+    public const string HttpRequestException = "Exception executing http request\n\t{exception";
+
     public const string TaskDelay = "Delaying {wait} seconds as {reason} back-off.";
+
+    public const string InstantiationError = "Exception creating {object}\n\t{exception}";
 }

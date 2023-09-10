@@ -7,7 +7,7 @@ using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
-using Neal.Reddit.Core.Entities.Exceptions;
+using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 using RestSharp.Authenticators;
 
@@ -60,8 +60,7 @@ try
                 {
                     options.ClearProviders();
                     options.AddSerilog(dispose: true);
-                })
-                .AddKafkaClient();
+                });
 
             services
                 .AddSingleton<IAuthenticator>(authenticator)

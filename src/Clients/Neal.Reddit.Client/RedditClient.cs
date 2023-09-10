@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
+using Neal.Reddit.Application.Utilities;
 using Neal.Reddit.Client.Extensions;
 using Neal.Reddit.Client.Helpers;
 using Neal.Reddit.Client.Interfaces;
@@ -18,6 +19,7 @@ using System.Text.Json.Serialization;
 
 namespace Neal.Reddit.Client;
 
+/// <inheritdoc cref="IRedditClient"/>
 public class RedditClient : IRedditClient, IDisposable
 {
     #region Fields
@@ -56,9 +58,10 @@ public class RedditClient : IRedditClient, IDisposable
             DateTimeOffset.FromUnixTimeSeconds(this.startEpochSeconds));
     }
 
+    /// <inheritdoc/>
     public async Task GetPostsAsync(
         SubredditConfiguration configuration,
-        Func<Link, Task> postHandler,
+        Func<Link, CancellationToken, Task> postHandler,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(configuration.Name)
@@ -160,7 +163,7 @@ public class RedditClient : IRedditClient, IDisposable
 
                         this.watchedPosts[post.Data.Name] = post.Data.Ups;
 
-                        await postRequest.PostHandler(post.Data);
+                        await postRequest.PostHandler(post.Data, cancellationToken);
                     }
                 }
             }
@@ -191,7 +194,7 @@ public class RedditClient : IRedditClient, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private async Task<ApiResponse> GetSubredditDataAsync(
+    private async Task<ApiResponse?> GetSubredditDataAsync(
         string path,
         string? afterPostName,
         string show,
@@ -214,66 +217,87 @@ public class RedditClient : IRedditClient, IDisposable
             path,
             afterPostName);
 
-        var response = await this.rateLimiter
-            .Run(
-                this.restClient.ExecuteGetAsync(request, cancellationToken),
-                cancellationToken);
+        int retries = 0;
 
-        if (response is not null
-            && response.StatusCode == HttpStatusCode.TooManyRequests)
+        while (retries < RetryUtilities.MaxRetries)
         {
-            var wait = TimeSpan.FromSeconds(response.ParseRateLimitReset());
+            try
+            {
+                var response = await this.rateLimiter
+                    !.Run(
+                        this.restClient.ExecuteGetAsync(request, cancellationToken),
+                        cancellationToken);                   
 
-            this.logger.LogWarning(CommonLogMessages.TaskDelay, wait.TotalSeconds, HttpStatusCode.TooManyRequests);
+                if (response is not null
+                    && response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    var wait = TimeSpan.FromSeconds(response.ParseRateLimitReset());
+
+                    this.logger.LogWarning(CommonLogMessages.TaskDelay, wait.TotalSeconds, HttpStatusCode.TooManyRequests);
                         
-            await Task.Delay(wait, cancellationToken);
+                    await Task.Delay(wait, cancellationToken);
 
-            this.rateLimiter = null; // Force rate limiter reset            
+                    this.rateLimiter = null; // Force rate limiter reset            
 
-            return await this.GetSubredditDataAsync(
-                path, 
-                afterPostName, 
-                show, 
-                limit, 
-                cancellationToken);  
-        }    
+                    return await this.GetSubredditDataAsync(
+                        path, 
+                        afterPostName, 
+                        show, 
+                        limit, 
+                        cancellationToken);  
+                }    
 
-        if (response is null
-            || response.StatusCode < HttpStatusCode.OK
-            || response.StatusCode >= HttpStatusCode.BadRequest)
-        {
-            var exception = new HttpRequestException(
-                string.Format(
-                    ExceptionMessages.HttpRequestError,
-                    response?.StatusCode,
-                    response?.StatusDescription));
-            this.logger.LogCritical(
-                exception,
-                CommonLogMessages.HttpRequestError, 
-                response?.StatusCode, 
-                response?.StatusDescription);
+                if (response is null
+                    || response.StatusCode < HttpStatusCode.OK
+                    || response.StatusCode >= HttpStatusCode.BadRequest)
+                {
+                    var exception = new HttpRequestException(
+                        string.Format(
+                            ExceptionMessages.HttpRequestError,
+                            response?.StatusCode,
+                            response?.StatusDescription));
+                    this.logger.LogCritical(
+                        exception,
+                        CommonLogMessages.HttpRequestError, 
+                        response?.StatusCode, 
+                        response?.StatusDescription);
 
-            throw exception;
+                    throw exception;
+                }
+
+                var listing = string.IsNullOrWhiteSpace(response?.Content)
+                    ? default
+                    : JsonSerializer.Deserialize<DataContainer<Listing>>(
+                        response.Content,
+                        new JsonSerializerOptions()
+                        {
+                            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                            PropertyNameCaseInsensitive = true,
+                        });
+
+                return new ApiResponse()
+                {
+                    RateLimitRemaining = response?.ParseRateLimitRemaining() ?? 0,
+                    RateLimitUsed = response?.ParseRateLimitUsed() ?? 0,
+                    RateLimitReset = response?.ParseRateLimitReset() ?? 0,
+                    Root = listing
+                };
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogCritical(CommonLogMessages.HttpRequestException, ex);
+
+                // Throw if exception is not transient
+                if (!RetryUtilities.ExceptionIsTransient(ex))
+                {
+                    throw;
+                }
+            }
+
+            retries++;
+            await Task.Delay(RetryUtilities.GetDelay(retries), cancellationToken);
         }
 
-        var listing = string.IsNullOrWhiteSpace(response?.Content)
-            ? default
-            : JsonSerializer.Deserialize<DataContainer<Listing>>(
-                response.Content,
-                new JsonSerializerOptions()
-                {
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                    PropertyNameCaseInsensitive = true,
-                });
-
-        var output = new ApiResponse()
-        {
-            RateLimitRemaining = response?.ParseRateLimitRemaining() ?? 0,
-            RateLimitUsed = response?.ParseRateLimitUsed() ?? 0,
-            RateLimitReset = response?.ParseRateLimitReset() ?? 0,
-            Root = listing
-        };
-
-        return output;
+        return default;
     }
 }
