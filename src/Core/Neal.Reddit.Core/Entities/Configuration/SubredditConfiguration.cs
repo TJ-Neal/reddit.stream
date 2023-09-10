@@ -9,7 +9,7 @@ public class SubredditConfiguration
 
     public Sorts Sort { get; set; } = Sorts.New;
 
-    public int PerRequestLimit { get; set; } = Defaults.PostLimit;
+    public int PerRequestLimit { get; set; } = Defaults.RateLimit;
 
     public MonitorTypes MonitorType { get; set; } = MonitorTypes.None;
 

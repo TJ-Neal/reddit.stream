@@ -33,6 +33,8 @@ public class RedditClient : IRedditClient, IDisposable
 
     private readonly ConcurrentDictionary<string, int> watchedPosts = new();
 
+    private readonly ConcurrentDictionary<string, int> clientRequestCounts = new();
+
     #endregion
 
     public RedditClient(
@@ -74,6 +76,11 @@ public class RedditClient : IRedditClient, IDisposable
             && postRequest.ShouldMonitor);
 
         var requestIdentifier = $"{postRequest.Name}-{postRequest.MonitorType}";
+
+        if (this.clientRequestCounts.TryGetValue(requestIdentifier, out var value))
+        {
+            _ = this.clientRequestCounts.TryRemove(new(requestIdentifier, value));
+        }
     }
 
     private async Task RequestPostsAsync(RedditPostRequest postRequest, CancellationToken cancellationToken)
@@ -85,6 +92,11 @@ public class RedditClient : IRedditClient, IDisposable
 
         do
         {
+            _ = this.clientRequestCounts.AddOrUpdate(
+                requestIdentifier,
+                ++requests,
+                (_, value) => Math.Max(value, ++requests));
+
             var response = await this.GetSubredditDataAsync(
                 path,
                 afterPostName,
@@ -101,8 +113,6 @@ public class RedditClient : IRedditClient, IDisposable
                 "Request response received {posts} posts returned for Subreddit {subreddit}", 
                 posts.Count(),
                 postRequest.Name);
-
-            var readPosts = 0;
 
             foreach (var post in posts)
             {
@@ -140,12 +150,10 @@ public class RedditClient : IRedditClient, IDisposable
                         await postRequest.PostHandler(post.Data);
                     }
                 }
-
-                readPosts++;
             }
 
             // Delay task processing to moderate request rate for API request limits
-            var wait = this.GetThreadSleep(response, postRequest.PerRequestLimit, posts.Count(), requests);
+            var wait = this.GetThreadSleep(response, postRequest.PerRequestLimit, posts.Count());
 
             this.logger.LogInformation(
                 CommonLogMessages.TaskDelay, 
@@ -156,6 +164,9 @@ public class RedditClient : IRedditClient, IDisposable
         }
         while (!cancellationToken.IsCancellationRequested
             && !string.IsNullOrEmpty(afterPostName));
+
+        // Reset client request count to number of requests required in the last loop
+        this.clientRequestCounts[requestIdentifier] = requests;
     }
 
     public void Dispose()
@@ -240,18 +251,19 @@ public class RedditClient : IRedditClient, IDisposable
         return output;
     }
 
-    private TimeSpan GetThreadSleep(ApiResponse? response, int perRequestLimit)
+    private TimeSpan GetThreadSleep(ApiResponse? response, int perRequestLimit, int postCount)
     {
         if (response is null)
         {
-            return TimeSpan.FromMilliseconds(Defaults.MinimumDelaySeconds);
+            return TimeSpan.FromMilliseconds(Defaults.RetryDelayMilliseconds);
         }
 
+        var runningClientRequests = Math.Max(this.clientRequestCounts.Sum(client => client.Value), 1); // prevent divide by 0
         var limitRemaining = Math.Max(response.RateLimitRemaining, 1); // prevent divide by 0
-        var limitingDelay = response.RateLimitReset / limitRemaining;
-        var postCountRatio = (perRequestLimit - (this.watchedPosts.Count % Defaults.PostLimit)) / 100; // convert to percentage
+        var limitingDelay = response.RateLimitReset / limitRemaining / runningClientRequests; // spread client requests across rate limit
+        var postCountRatio = (perRequestLimit - postCount) / 100; // convert to percentage
         var postCountDelay = postCountRatio * Defaults.NoPostDelaySeconds; // increase delay based on posts returned
-        var delay = Math.Max(limitingDelay + postCountDelay, Defaults.MinimumDelaySeconds); // Ensure minimum delay of 1.5 seconds
+        var delay = Math.Max(limitingDelay + postCountDelay, 1.5); // Ensure minimum delay of 1.5 seconds
 
         return TimeSpan.FromSeconds(delay);
     }
