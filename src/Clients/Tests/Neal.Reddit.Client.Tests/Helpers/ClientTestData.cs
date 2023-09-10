@@ -60,5 +60,5 @@ public class ClientTestData : IEnumerable<object[]>
         };
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 }

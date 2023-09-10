@@ -21,27 +21,17 @@ public class RedditClient : IRedditClient, IDisposable
 {
     #region Fields
 
-    #region Static
-
-    private static readonly ConcurrentDictionary<Guid, int> runningClients = new();
-
-    #endregion
-
     #region Injected
 
     private readonly ILogger<RedditClient> logger;
 
     #endregion
 
-    private readonly Guid identifier = new();
-
     private readonly RestClient restClient;
 
     private readonly long startEpochSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
     private readonly ConcurrentDictionary<string, int> watchedPosts = new();
-
-    private string startingPost = string.Empty;
 
     #endregion
 
@@ -56,6 +46,11 @@ public class RedditClient : IRedditClient, IDisposable
 
         this.restClient = new RestClient(options);
         this.logger = logger;
+
+        this.logger.LogInformation(
+            "Application start up [epoch {epoch}] [datetime {date}]",
+            this.startEpochSeconds,
+            DateTimeOffset.FromUnixTimeSeconds(this.startEpochSeconds));
     }
 
     public async Task GetPostsAsync(
@@ -77,40 +72,37 @@ public class RedditClient : IRedditClient, IDisposable
         }
         while (!cancellationToken.IsCancellationRequested
             && postRequest.ShouldMonitor);
+
+        var requestIdentifier = $"{postRequest.Name}-{postRequest.MonitorType}";
     }
 
     private async Task RequestPostsAsync(RedditPostRequest postRequest, CancellationToken cancellationToken)
-    {        
-        string paginationPost;
+    {
+        var requestIdentifier = $"{postRequest.Name}-{postRequest.MonitorType}";
+        var afterPostName = string.Empty;
         var path = $"{UrlStrings.SubredditPartialUrl}/{postRequest.Name}/{postRequest.Sort}{UrlStrings.Json}".ToLower();
         var requests = 0;
 
         do
         {
-            runningClients.AddOrUpdate(
-                this.identifier,
-                ++requests,
-                (_, value) => Math.Max(value, ++requests));
-            paginationPost = string.Empty;
-
-            var pertinentPostCount = 0;
-            var response = await GetSubredditDataAsync(
+            var response = await this.GetSubredditDataAsync(
                 path,
-                this.startingPost,
-                paginationPost,
+                afterPostName,
                 postRequest.Show,
                 postRequest.PerRequestLimit,
                 cancellationToken);
-            var posts = response
-                ?.Root
-                ?.Data
-                ?.Children 
-                    ?? Enumerable.Empty<DataContainer<Link>>();
+            var posts = response?.Root?.Data?.Children 
+                ?? Enumerable.Empty<DataContainer<Link>>();
+
+            afterPostName = response?.Root?.Data?.After
+                ?? string.Empty;
 
             this.logger.LogInformation(
-                "Request response received\n\t{posts} posts returned for Subreddit\n\t{@subreddit}", 
+                "Request response received {posts} posts returned for Subreddit {subreddit}", 
                 posts.Count(),
-                postRequest);
+                postRequest.Name);
+
+            var readPosts = 0;
 
             foreach (var post in posts)
             {
@@ -122,29 +114,38 @@ public class RedditClient : IRedditClient, IDisposable
                 if (postRequest.MonitorType == MonitorTypes.AfterStartOnly
                     && post.Data?.CreatedUtcEpoch < this.startEpochSeconds)
                 {
+                    // If sort is new, ignore remaining posts in request and do not paginate
                     if (postRequest.Sort == Sorts.New)
                     {
-                        this.startingPost = post.Data.Name;
+                        afterPostName = string.Empty;
 
                         break;
                     }
                 }
                 else if (post.Data is not null)
                 {
-                    pertinentPostCount++;
-
-                    var shouldUpdate = watchedPosts.TryGetValue(post.Data.Name, out int upvotes)
+                    var shouldUpdate = this.watchedPosts.TryGetValue(post.Data.Name, out var upvotes)
                         ? upvotes < post.Data.Ups
-                        : watchedPosts.TryAdd(post.Data.Name, post.Data.Ups);
+                        : this.watchedPosts.TryAdd(post.Data.Name, post.Data.Ups);
 
                     if (shouldUpdate)
                     {
+                        this.logger.LogInformation(
+                            "Post added or updated [{postName}] in [{subreddit}] [old {upvotes}] [new {newUpvotes}] [{posted}]",
+                            post.Data.Name,
+                            postRequest.Name,
+                            upvotes,
+                            post.Data.Ups,
+                            DateTimeOffset.FromUnixTimeSeconds((long)post.Data.CreatedUtcEpoch));
                         await postRequest.PostHandler(post.Data);
                     }
                 }
+
+                readPosts++;
             }
 
-            var wait = GetThreadSleep(response, postRequest.PerRequestLimit, posts.Count());
+            // Delay task processing to moderate request rate for API request limits
+            var wait = this.GetThreadSleep(response, postRequest.PerRequestLimit, posts.Count(), requests);
 
             this.logger.LogInformation(
                 CommonLogMessages.TaskDelay, 
@@ -152,50 +153,20 @@ public class RedditClient : IRedditClient, IDisposable
                 postRequest.Name);
 
             await Task.Delay(wait, cancellationToken);
-
-            if (postRequest.Sort == Sorts.New
-                && pertinentPostCount < postRequest.PerRequestLimit)
-            {
-                paginationPost = string.Empty;
-            }
         }
         while (!cancellationToken.IsCancellationRequested
-            && !string.IsNullOrWhiteSpace(paginationPost));
-
-        // Reset running client request count to number of requests required in the last loop
-        runningClients[this.identifier] = requests;
+            && !string.IsNullOrEmpty(afterPostName));
     }
 
     public void Dispose()
     {
-        if (runningClients.TryGetValue(this.identifier, out var value))
-        {
-            runningClients.TryRemove(new(this.identifier, value));
-        }
-
-        restClient?.Dispose();
+        this.restClient?.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    private static TimeSpan GetThreadSleep(ApiResponse? response, int perRequestLimit, int postCount)
-    {
-        if (response is null)
-        {
-            return TimeSpan.FromMilliseconds(Defaults.RetryDelayMilliseconds);
-        }                
-        
-        var runningClientRequests = Math.Max(runningClients.Sum(client => client.Value), 1); // prevent divide by 0
-        var limitRemaining = Math.Max(response.RateLimitRemaining, 1); // prevent divide by 0
-        var limitingDelay = response.RateLimitReset / limitRemaining / runningClientRequests; // spread client requests across rate limit
-        var postCountRatio = (perRequestLimit - postCount) / 100; // convert to percentage
-        var postCountDelay = postCountRatio * Defaults.NoPostDelaySeconds; // increase delay based on posts returned
-
-        return TimeSpan.FromSeconds(limitingDelay + postCountDelay);
     }
 
     private async Task<ApiResponse> GetSubredditDataAsync(
         string path,
-        GetOrPostParameter paginationParameter,
+        string? afterPostName,
         string show,
         int limit,
         CancellationToken cancellationToken)
@@ -204,11 +175,14 @@ public class RedditClient : IRedditClient, IDisposable
             .AddParameter(ParameterStrings.Show, show)
             .AddParameter(ParameterStrings.Limit, limit)
             .AddParameter(ParameterStrings.RawJson, 1)
-            .AddParameter(paginationParameter);
+            .AddParameter(ParameterStrings.After, afterPostName);    
 
-        this.logger.LogInformation("Executing request\n\t{@request}\n\t{startingPost}", request.Parameters, this.startingPost);
+        this.logger.LogInformation(
+            "Executing request for {path} [after {afterPostName}]", 
+            path,
+            afterPostName);
 
-        var response = await restClient.ExecuteGetAsync(request, cancellationToken);
+        var response = await this.restClient.ExecuteGetAsync(request, cancellationToken);
 
         if (response is not null
             && response.StatusCode == HttpStatusCode.TooManyRequests)
@@ -219,7 +193,12 @@ public class RedditClient : IRedditClient, IDisposable
 
             await Task.Delay(wait, cancellationToken);
 
-            return await GetSubredditDataAsync(path, before, after, show, limit, cancellationToken);  
+            return await this.GetSubredditDataAsync(
+                path, 
+                afterPostName, 
+                show, 
+                limit, 
+                cancellationToken);  
         }         
 
         if (response is null
@@ -231,7 +210,7 @@ public class RedditClient : IRedditClient, IDisposable
                     ExceptionMessages.HttpRequestError,
                     response?.StatusCode,
                     response?.StatusDescription));
-            logger.LogCritical(
+            this.logger.LogCritical(
                 exception,
                 CommonLogMessages.HttpRequestError, 
                 response?.StatusCode, 
@@ -259,5 +238,21 @@ public class RedditClient : IRedditClient, IDisposable
         };
 
         return output;
-    }    
+    }
+
+    private TimeSpan GetThreadSleep(ApiResponse? response, int perRequestLimit)
+    {
+        if (response is null)
+        {
+            return TimeSpan.FromMilliseconds(Defaults.MinimumDelaySeconds);
+        }
+
+        var limitRemaining = Math.Max(response.RateLimitRemaining, 1); // prevent divide by 0
+        var limitingDelay = response.RateLimitReset / limitRemaining;
+        var postCountRatio = (perRequestLimit - (this.watchedPosts.Count % Defaults.PostLimit)) / 100; // convert to percentage
+        var postCountDelay = postCountRatio * Defaults.NoPostDelaySeconds; // increase delay based on posts returned
+        var delay = Math.Max(limitingDelay + postCountDelay, Defaults.MinimumDelaySeconds); // Ensure minimum delay of 1.5 seconds
+
+        return TimeSpan.FromSeconds(delay);
+    }
 }

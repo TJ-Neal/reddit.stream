@@ -29,38 +29,38 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
     public KafkaConsumerWrapper(WrapperConfiguration<ConsumerConfig> wrapperConfiguration, ILogger<KafkaConsumerWrapper> logger, IHttpClientFactory httpClientFactory)
     {
         this.logger = logger;
-        clientFactory = httpClientFactory;
-        configuration = wrapperConfiguration;
+        this.clientFactory = httpClientFactory;
+        this.configuration = wrapperConfiguration;
 
-        if (configuration is null
-            || string.IsNullOrEmpty(configuration?.ClientConfig?.BootstrapServers))
+        if (this.configuration is null
+            || string.IsNullOrEmpty(this.configuration?.ClientConfig?.BootstrapServers))
         {
-            throw new KeyNotFoundException($"Key {nameof(configuration.ClientConfig.BootstrapServers)} was not found and is required.");
+            throw new KeyNotFoundException($"Key {nameof(this.configuration.ClientConfig.BootstrapServers)} was not found and is required.");
         }
 
-        configuration.ClientConfig.GroupId = new Guid().ToString(); // Create a random consumer group so messages can be replayed from offset without special configuration
-        consumer =
-            new ConsumerBuilder<string, string>(configuration.ClientConfig)
+        this.configuration.ClientConfig.GroupId = new Guid().ToString(); // Create a random consumer group so messages can be replayed from offset without special configuration
+        this.consumer =
+            new ConsumerBuilder<string, string>(this.configuration.ClientConfig)
             .Build();
-        consumer.Subscribe(configuration.Topic);
+        this.consumer.Subscribe(this.configuration.Topic);
         this.logger.LogInformation(WrapperLogMessages.Subscribed, wrapperConfiguration.Topic);
     }
 
     public async Task ConsumeAsync(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(configuration.BaseUrl))
+        if (string.IsNullOrEmpty(this.configuration.BaseUrl))
         {
             throw new InvalidOperationException(CommonLogMessages.InvalidConfiguration);
         }
 
         // TODO: Create a timer for resetting faulted so producers can retry after t time
-        while (configuration.Enabled
+        while (this.configuration.Enabled
             && !hasFaulted
             && !cancellationToken.IsCancellationRequested)
         {
             try
             {
-                var data = await GetNextSubscriptionResult(cancellationToken);
+                var data = await this.GetNextSubscriptionResult(cancellationToken);
 
                 if (!hasFaulted && data is not null)
                 {
@@ -70,23 +70,23 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
                     {
                         try
                         {
-                            using var client = clientFactory.CreateClient();
+                            using var client = this.clientFactory.CreateClient();
 
-                            var postResult = await client.PostAsJsonAsync(configuration.BaseUrl, new List<Link> { data }, cancellationToken);
+                            var postResult = await client.PostAsJsonAsync(this.configuration.BaseUrl, new List<Link> { data }, cancellationToken);
 
                             if (postResult is null || !postResult.IsSuccessStatusCode)
                             {
-                                logger.LogError(HandlerLogMessages.ConsumerPostError, postResult?.StatusCode, postResult?.Content);
+                                this.logger.LogError(HandlerLogMessages.ConsumerPostError, postResult?.StatusCode, postResult?.Content);
                             }
                             else
                             {
-                                logger.LogDebug(HandlerLogMessages.PrintConsumeResult, DateTime.Now, postResult.StatusCode, data.Name);
+                                this.logger.LogDebug(HandlerLogMessages.PrintConsumeResult, DateTime.Now, postResult.StatusCode, data.Name);
                                 break;
                             }
                         }
                         catch (Exception ex)
                         {
-                            logger.LogCritical(HandlerLogMessages.ProducerException, ex.Message);
+                            this.logger.LogCritical(HandlerLogMessages.ProducerException, ex.Message);
 
                             // Exit loop if exception is not transient
                             if (!RetryUtilities.ExceptionIsTransient(ex))
@@ -102,29 +102,29 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
             }
             catch (Exception ex)
             {
-                logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
+                this.logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
             }
         }
     }
 
     public void Dispose()
     {
-        logger.LogInformation(CommonLogMessages.Disposing, nameof(KafkaConsumerWrapper));
-        logger.LogInformation(CommonLogMessages.Disposing, nameof(consumer));
+        this.logger.LogInformation(CommonLogMessages.Disposing, nameof(KafkaConsumerWrapper));
+        this.logger.LogInformation(CommonLogMessages.Disposing, nameof(this.consumer));
 
         try
         {
-            if (consumer is not null)
+            if (this.consumer is not null)
             {
-                consumer.Unsubscribe();
-                consumer.Close();
-                consumer.Dispose();
+                this.consumer.Unsubscribe();
+                this.consumer.Close();
+                this.consumer.Dispose();
             }
         }
         catch (Exception ex)
         {
-            logger
-                .LogError(ExceptionMessages.DisposeException, nameof(consumer), ex.Message);
+            this.logger
+                .LogError(ExceptionMessages.DisposeException, nameof(this.consumer), ex.Message);
         }
 
         GC.SuppressFinalize(this);
@@ -138,7 +138,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
 
             while (retries < RetryUtilities.MaxRetries)
             {
-                var consumeResult = await Task.Run(() => consumer.Consume(cancellationToken));
+                var consumeResult = await Task.Run(() => this.consumer.Consume(cancellationToken));
 
                 if (consumeResult is not null)
                 {
@@ -146,7 +146,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
 
                     if (data is not null)
                     {
-                        logger.LogDebug(
+                        this.logger.LogDebug(
                             HandlerLogMessages.PrintConsumeResult,
                             DateTime.Now.ToUniversalTime(),
                             consumeResult.Message.Key,
@@ -163,7 +163,7 @@ public class KafkaConsumerWrapper : IKafkaConsumerWrapper<string, string>
         }
         catch (Exception ex)
         {
-            logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
+            this.logger.LogCritical(HandlerLogMessages.ConsumerException, ex.Message);
         }
 
         return default;

@@ -27,16 +27,16 @@ public class KafkaPostReceivedHandler : INotificationHandler<KafkaPostReceivedNo
 
     public KafkaPostReceivedHandler(IKafkaProducerWrapper kafkaProducer, ILogger<KafkaPostReceivedHandler> logger, WrapperConfiguration<ProducerConfig> wrapperConfiguration)
     {
-        topic = string.IsNullOrEmpty(wrapperConfiguration.Topic)
+        this.topic = string.IsNullOrEmpty(wrapperConfiguration.Topic)
                 ? throw new KafkaException(ErrorCode.Local_UnknownTopic)
                 : wrapperConfiguration.Topic;
-        kafkaProducerWrapper = kafkaProducer;
+        this.kafkaProducerWrapper = kafkaProducer;
         this.logger = logger;
     }
 
     #region INotificationHandler Implementation
 
-    public void Dispose() => kafkaProducerWrapper.Flush();
+    public void Dispose() => this.kafkaProducerWrapper.Flush();
 
     /// <summary>
     /// Handle when a <seealso cref="KafkaPostReceivedNotification"/> notification is received, publishing to the Kafka stream.
@@ -45,26 +45,26 @@ public class KafkaPostReceivedHandler : INotificationHandler<KafkaPostReceivedNo
     {
         if (notification is null)
         {
-            logger.LogDebug(HandlerLogMessages.NullNotification);
+            this.logger.LogDebug(HandlerLogMessages.NullNotification);
 
             return;
         }
 
         if (notification.Post is null)
         {
-            logger.LogDebug(HandlerLogMessages.NullRecord);
+            this.logger.LogDebug(HandlerLogMessages.NullRecord);
 
             return;
         }
 
         if (notification.Post.Name is null || string.IsNullOrWhiteSpace(notification.Post.Name))
         {
-            logger.LogDebug(HandlerLogMessages.NullRecordId);
+            this.logger.LogDebug(HandlerLogMessages.NullRecordId);
 
             return;
         }
 
-        await kafkaProducerWrapper
+        await this.kafkaProducerWrapper
             .ProduceAsync(
                 new KafkaProducerMessage(
                     new Message<string, Link>
@@ -72,7 +72,7 @@ public class KafkaPostReceivedHandler : INotificationHandler<KafkaPostReceivedNo
                         Key = notification.Post.Name.ToString()!,
                         Value = notification.Post
                     },
-                    topic
+                    this.topic
                 ),
                 cancellationToken);
     }

@@ -31,11 +31,11 @@ public class RedditReaderService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation(CommonLogMessages.StartingLoop);
+        this.logger.LogInformation(CommonLogMessages.StartingLoop);
 
         try
         {
-            var subreddits = configuration
+            var subreddits = this.configuration
                 .GetSection(nameof(SubredditConfiguration))
                 ?.Get<List<SubredditConfiguration>>();
 
@@ -50,24 +50,25 @@ public class RedditReaderService : BackgroundService
             foreach (var subreddit in subreddits)
             {
                 tasks.Add(
-                    redditClient.GetPostsAsync(
+                    this.redditClient.GetPostsAsync(
                         subreddit,
-                        HandleNewPostAsync,
+                        this.HandleNewPostAsync,
                         cancellationToken));
             }
 
             await Task.WhenAll(tasks);
 
-            logger.LogInformation(CommonLogMessages.CancelRequested);
+            this.logger.LogInformation(CommonLogMessages.CancelRequested);
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
+            this.logger.LogCritical(ExceptionMessages.ErrorDuringLoop, ex);
         }
     }
 
-    private async Task HandleNewPostAsync(Link post)
-    {
-        logger.LogInformation("Post {post}", post);
-    }
+    private async Task HandleNewPostAsync(Link post) => this.logger.LogInformation(
+            "Post {postName} in {subreddit} has {upvotes}",
+            post.Name,
+            post.Subreddit,
+            post.Ups);
 }

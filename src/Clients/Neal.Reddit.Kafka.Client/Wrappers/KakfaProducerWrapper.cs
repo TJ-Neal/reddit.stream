@@ -39,11 +39,11 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
 
         try
         {
-            producer = new ProducerBuilder<string, string>(wrapperConfiguration.ClientConfig).Build();
+            this.producer = new ProducerBuilder<string, string>(wrapperConfiguration.ClientConfig).Build();
         }
         catch (Exception ex)
         {
-            this.logger.LogCritical(ExceptionMessages.InstantiationError, nameof(producer), ex);
+            this.logger.LogCritical(ExceptionMessages.InstantiationError, nameof(this.producer), ex);
         }
     }
 
@@ -64,24 +64,24 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
                 }
                 else
                 {
-                    lock (producerLock)
+                    lock (this.producerLock)
                     {
-                        producedCount++;
+                        this.producedCount++;
 
-                        if (producedCount % 1000M == 0)
+                        if (this.producedCount % 1000M == 0)
                         {
-                            logger.LogInformation(
+                            this.logger.LogInformation(
                                 HandlerLogMessages.PrintProducerResult,
                                 deliveryReport.Timestamp.UtcDateTime.ToLocalTime().ToShortTimeString(),
                                 deliveryReport.Status,
                                 deliveryReport.Topic,
-                                producedCount);
+                                this.producedCount);
                         }
                     }
                 }
             }
 
-            producer?
+            this.producer?
                 .Produce(
                     message.Topic,
                     message.Message,
@@ -89,7 +89,7 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
         }
         catch (Exception ex)
         {
-            logger.LogCritical(
+            this.logger.LogCritical(
                 HandlerLogMessages.ProducerException,
                 message.Message.Key,
                 message.Message.Value,
@@ -102,14 +102,14 @@ public class KafkaProducerWrapper : IKafkaProducerWrapper, IDisposable
 
     public void Flush()
     {
-        producer?.Flush();
-        logger.LogInformation(CommonLogMessages.Flushed, nameof(producer));
+        this.producer?.Flush();
+        this.logger.LogInformation(CommonLogMessages.Flushed, nameof(this.producer));
     }
 
     public void Dispose()
     {
-        logger.LogInformation(CommonLogMessages.Disposing, nameof(producer));
-        producer?.Dispose();
+        this.logger.LogInformation(CommonLogMessages.Disposing, nameof(this.producer));
+        this.producer?.Dispose();
 
         GC.SuppressFinalize(this);
     }

@@ -17,7 +17,7 @@ public class RedditAuthenticatorTests
             .AddUserSecrets<RedditAuthenticatorTests>()
             .Build();
 
-        _credentials = configuration
+        this._credentials = configuration
             .GetSection(nameof(Credentials))
             ?.Get<Credentials>()
             ?? new Credentials();
@@ -37,7 +37,7 @@ public class RedditAuthenticatorTests
     public async Task Reddit_Authentication_GetAuthenticationParameter_Success()
     {
         // Arrange
-        var authenticator = new RedditAuthenticatorHelper(_credentials);
+        var authenticator = new RedditAuthenticatorHelper(this._credentials);
 
         // Act
         var result = await authenticator.GetAuthenticationParameter();

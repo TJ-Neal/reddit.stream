@@ -57,7 +57,7 @@ public sealed class SimpleProducerWrapper : ISimpleProducerWrapper
         {
             try
             {
-                using var client = clientFactory.CreateClient();
+                using var client = this.clientFactory.CreateClient();
 
                 var result = await client.PostAsJsonAsync(this.configuration.BaseUrl, new List<Link> { message }, cancellationToken);
 
