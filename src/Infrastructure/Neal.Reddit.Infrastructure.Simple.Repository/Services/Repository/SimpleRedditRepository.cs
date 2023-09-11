@@ -27,7 +27,7 @@ public class SimpleRedditRepository : IPostRepository
         {
             var cachedValue = this.memoryCache
                 .GetOrCreate<ConcurrentDictionary<string, Link>>(
-                    CacheKeys.PostsRepository,
+                    $"{CacheKeys.PostsRepository}-posts",
                     cacheEntry =>
                     {
                         cacheEntry.SlidingExpiration = TimeSpan.FromHours(1);
@@ -45,7 +45,7 @@ public class SimpleRedditRepository : IPostRepository
         {
             var cachedValue = this.memoryCache
                 .GetOrCreate<ConcurrentDictionary<string, int>>(
-                    CacheKeys.PostsRepository,
+                    $"{CacheKeys.PostsRepository}-ups",
                     cacheEntry =>
                     {
                         cacheEntry.SlidingExpiration = TimeSpan.FromHours(1);
@@ -63,7 +63,7 @@ public class SimpleRedditRepository : IPostRepository
         {
             var cachedValue = this.memoryCache
                 .GetOrCreate<ConcurrentDictionary<string, int>>(
-                    CacheKeys.PostsRepository,
+                    $"{CacheKeys.PostsRepository}-authors",
                     cacheEntry =>
                     {
                         cacheEntry.SlidingExpiration = TimeSpan.FromHours(1);
@@ -134,7 +134,7 @@ public class SimpleRedditRepository : IPostRepository
             .Take(pagination.PageSize)
             .ToList());
 
-    public Task<List<KeyValuePair<string, int>>> GetAllAuthors(Pagination pagination) =>
+    public Task<List<KeyValuePair<string, int>>> GetAllAuthorsAsync(Pagination pagination) =>
         Task.FromResult(this.Authors
             .AsEnumerable()
             .Skip(pagination.PageSize * (pagination.Page - 1))

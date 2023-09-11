@@ -92,10 +92,16 @@ public class RedditClient : IRedditClient, IDisposable
             var rateLimitReset = response?.ParseRateLimitReset() ?? Defaults.ResetSeconds;
 
             this.rateLimiter = new(rateLimitRemaining, rateLimitReset);
+
+            this.logger.LogInformation(
+                "Rate limiter initiated with {limitRemaining} remaining before {limitReset} reset.",
+                rateLimitRemaining,
+                rateLimitReset);
         }
         catch
         {
             this.rateLimiter = new(Defaults.MaxRequestsPerReset, Defaults.ResetSeconds);
+            this.logger.LogInformation("Rate limiter initiated with default values.");
         }
     }
 

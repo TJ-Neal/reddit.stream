@@ -12,7 +12,11 @@ public interface IPostRepository : IDisposable
 
     Task<List<Link>> GetAllPostsAsync(Pagination pagination);
 
+    Task<List<KeyValuePair<string, int>>> GetAllAuthorsAsync(Pagination pagination);
+
     Task<long> GetPostsCountAsync();
+
+    Task<long> GetAuthorsCountAsync();
 
     Task<IEnumerable<KeyValuePair<string, int>>> GetTopPosts(int top = 10);
 
