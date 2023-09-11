@@ -120,7 +120,7 @@ public class SimpleRedditRepository : IPostRepository
         (await this.GetCachedPostsAsync(subreddit))
             .Where(post => post.Score > 0 || post.Downs > 0)
             .OrderBy(post => post.UpvoteRatio)
-            .OrderBy(post => post.Score)
+            .ThenBy(post => post.Score)
             .ThenBy(post => post.Name)
             .Take(top);
 
