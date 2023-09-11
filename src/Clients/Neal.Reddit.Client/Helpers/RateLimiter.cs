@@ -1,5 +1,6 @@
 ﻿using Neal.Reddit.Core.Constants;
 using RestSharp;
+using Serilog;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -74,6 +75,7 @@ public class RateLimiter : IDisposable
         // Wait minimum delay
         if (delay > TimeSpan.Zero)
         {
+            Log.Information("Delaying {delay} milliseconds for semaphore.", delay.TotalMilliseconds);
             await Task.Delay(delay, cancellationToken);
         }
     }

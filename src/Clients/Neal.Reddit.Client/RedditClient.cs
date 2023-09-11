@@ -109,7 +109,7 @@ public class RedditClient : IRedditClient, IDisposable
     {
         var requestIdentifier = $"{postRequest.Name}-{postRequest.MonitorType}";
         var afterPostName = string.Empty;
-        var path = $"{UrlStrings.SubredditPartialUrl}/{postRequest.Name}/{postRequest.Sort}{UrlStrings.Json}".ToLower();
+        var path = $"{UrlStrings.SubredditPartialUrl}/{postRequest.Name}/{UrlStrings.New}".ToLower();
         var updates = 0;
 
         do
@@ -141,13 +141,9 @@ public class RedditClient : IRedditClient, IDisposable
                 if (postRequest.MonitorType == MonitorTypes.AfterStartOnly
                     && post.Data?.CreatedUtcEpoch < this.startEpochSeconds)
                 {
-                    // If sort is new, ignore remaining posts in request and do not paginate
-                    if (postRequest.Sort == Sorts.New)
-                    {
-                        afterPostName = string.Empty;
+                    afterPostName = string.Empty;
 
-                        break;
-                    }
+                    break;
                 }
                 else if (post.Data is not null)
                 {

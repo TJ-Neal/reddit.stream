@@ -10,15 +10,15 @@ public interface IPostRepository : IDisposable
 {
     Task AddPostsAsync(IEnumerable<Link> records);
 
-    Task<List<Link>> GetAllPostsAsync(Pagination pagination);
+    Task<List<Link>> GetAllPostsAsync(string? subreddit, Pagination pagination);
 
-    Task<List<KeyValuePair<string, int>>> GetAllAuthorsAsync(Pagination pagination);
+    Task<IEnumerable<KeyValuePair<string, List<Link>>>> GetAllAuthorsAsync(string? subreddit, Pagination pagination);
 
-    Task<long> GetPostsCountAsync();
+    Task<long> GetPostsCountAsync(string? subreddit);
 
-    Task<long> GetAuthorsCountAsync();
+    Task<long> GetAuthorsCountAsync(string? subreddit);
 
-    Task<IEnumerable<KeyValuePair<string, int>>> GetTopPosts(int top = 10);
+    Task<IEnumerable<KeyValuePair<string, int>>> GetTopPosts(string? subreddit, int top = 10);
 
-    Task<IEnumerable<KeyValuePair<string, int>>> GetTopAuthors(int top = 10);
+    Task<IEnumerable<KeyValuePair<string, int>>> GetTopAuthors(string? subreddit, int top = 10);
 }

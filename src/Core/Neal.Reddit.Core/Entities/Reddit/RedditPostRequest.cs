@@ -20,6 +20,5 @@ public class RedditPostRequest : SubredditConfiguration
         this.PerRequestLimit = configuration.PerRequestLimit;
         this.PostHandler = postHandler;
         this.Show = show;
-        this.Sort = configuration.Sort;
     }
 }
