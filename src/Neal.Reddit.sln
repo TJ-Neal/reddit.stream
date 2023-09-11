@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{9A7F23C0-0C4D-4BEB-84C1-9C98E4EA922E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{A505C243-5786-49A4-84EE-16776D9BA16C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{A8459E24-5F79-4404-BC8E-EC3C17F39F33}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{000B8D3D-D662-4383-AC38-4450057F18F3}"
@@ -29,17 +27,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{D2C4E8C8-4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Application", "Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj", "{E8CE7980-1A4A-435F-936D-701E3D13A723}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "neal.reddit.reactapp", "UI\neal.reddit.reactapp\neal.reddit.reactapp.esproj", "{D9564146-5E3E-4C2D-908F-036143FD0CF9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Client", "Clients\Neal.Reddit.Client\Neal.Reddit.Client.csproj", "{40F5BA9B-F38D-4FFB-966B-169E65B8139B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Client.Tests", "Clients\Tests\Neal.Reddit.Client.Tests\Neal.Reddit.Client.Tests.csproj", "{C3CA19C0-4D1B-4B75-BDE9-3EC26FF22335}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Client.Simple", "Clients\Neal.Reddit.Client.Simple\Neal.Reddit.Client.Simple.csproj", "{2A6FF630-1FF2-4BB9-915D-5E8F2C395500}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.Infrastructure.Simple.Repository", "Infrastructure\Neal.Reddit.Infrastructure.Simple.Repository\Neal.Reddit.Infrastructure.Simple.Repository.csproj", "{E54BFE55-8C3A-4BBF-9B70-FECD48ACF1CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.Infrastructure.Simple.Repository", "Infrastructure\Neal.Reddit.Infrastructure.Simple.Repository\Neal.Reddit.Infrastructure.Simple.Repository.csproj", "{E54BFE55-8C3A-4BBF-9B70-FECD48ACF1CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neal.Reddit.API.Simple", "API\Neal.Reddit.API.Simple\Neal.Reddit.API.Simple.csproj", "{443124AC-AFCD-4CDC-B48E-6AFDB9D5545F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Neal.Reddit.API.Simple", "API\Neal.Reddit.API.Simple\Neal.Reddit.API.Simple.csproj", "{443124AC-AFCD-4CDC-B48E-6AFDB9D5545F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,15 +68,6 @@ Global
 		{E8CE7980-1A4A-435F-936D-701E3D13A723}.Docker|Any CPU.Build.0 = Debug|Any CPU
 		{E8CE7980-1A4A-435F-936D-701E3D13A723}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8CE7980-1A4A-435F-936D-701E3D13A723}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Docker|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Docker|Any CPU.Build.0 = Debug|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Docker|Any CPU.Deploy.0 = Debug|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{40F5BA9B-F38D-4FFB-966B-169E65B8139B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{40F5BA9B-F38D-4FFB-966B-169E65B8139B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40F5BA9B-F38D-4FFB-966B-169E65B8139B}.Docker|Any CPU.ActiveCfg = Debug|Any CPU
@@ -123,7 +110,6 @@ Global
 		{B5F78454-1B7D-4DDC-A8D7-8E7053837048} = {000B8D3D-D662-4383-AC38-4450057F18F3}
 		{F80439C8-4965-48A7-8367-5C78C1875825} = {D2C4E8C8-4CDF-476D-9EEF-2CAF9F21841E}
 		{E8CE7980-1A4A-435F-936D-701E3D13A723} = {BDB4B920-029B-4DDF-A187-617D4A83213A}
-		{D9564146-5E3E-4C2D-908F-036143FD0CF9} = {A505C243-5786-49A4-84EE-16776D9BA16C}
 		{40F5BA9B-F38D-4FFB-966B-169E65B8139B} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
 		{C3CA19C0-4D1B-4B75-BDE9-3EC26FF22335} = {679742A8-8313-4EC3-9D1C-6C26B82334A0}
 		{2A6FF630-1FF2-4BB9-915D-5E8F2C395500} = {A8459E24-5F79-4404-BC8E-EC3C17F39F33}
