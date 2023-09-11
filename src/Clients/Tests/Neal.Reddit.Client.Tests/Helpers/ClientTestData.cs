@@ -19,8 +19,7 @@ public class ClientTestData : IEnumerable<object[]>
             new SubredditConfiguration()
             {
                 Name = "all",
-                MonitorType = MonitorTypes.None,
-                Sort = Sorts.New,
+                MonitorType = MonitorTypes.None
             } 
         };
         yield return new object[] 
@@ -28,7 +27,6 @@ public class ClientTestData : IEnumerable<object[]>
             new SubredditConfiguration()
             {
                 Name = "all",
-                Sort = Sorts.New,
                 PerRequestLimit = 50,
             }
         };
@@ -37,7 +35,6 @@ public class ClientTestData : IEnumerable<object[]>
             new SubredditConfiguration()
             {
                 Name = "all",
-                Sort = Sorts.New
             }
         };
         yield return new object[] 
@@ -54,7 +51,6 @@ public class ClientTestData : IEnumerable<object[]>
             {
                 Name = "all",
                 MonitorType = MonitorTypes.None,
-                Sort = Sorts.New,
                 PerRequestLimit = 50,
             } 
         };

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Neal.Reddit.Application.Constants.Keys;
 using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Application.Interfaces.RedditRepository;
 using Neal.Reddit.Core.Entities.Configuration;
@@ -21,59 +20,9 @@ public class SimpleRedditRepository : IPostRepository
 
     private readonly CancellationTokenSource cancellationTokenSource;
 
-    private ConcurrentDictionary<string, Link> Posts
-    {
-        get
-        {
-            var cachedValue = this.memoryCache
-                .GetOrCreate<ConcurrentDictionary<string, Link>>(
-                    CacheKeys.PostsRepository,
-                    cacheEntry =>
-                    {
-                        cacheEntry.SlidingExpiration = TimeSpan.FromHours(1);
+    private readonly ConcurrentDictionary<string, Link> posts = new();
 
-                        return new();
-                    });
-
-            return cachedValue ?? new();
-        }
-    }
-
-    private ConcurrentDictionary<string, int> PostUps
-    {
-        get
-        {
-            var cachedValue = this.memoryCache
-                .GetOrCreate<ConcurrentDictionary<string, int>>(
-                    CacheKeys.PostsRepository,
-                    cacheEntry =>
-                    {
-                        cacheEntry.SlidingExpiration = TimeSpan.FromHours(1);
-
-                        return new();
-                    });
-
-            return cachedValue ?? new();
-        }
-    }
-
-    private ConcurrentDictionary<string, int> Authors
-    {
-        get
-        {
-            var cachedValue = this.memoryCache
-                .GetOrCreate<ConcurrentDictionary<string, int>>(
-                    CacheKeys.PostsRepository,
-                    cacheEntry =>
-                    {
-                        cacheEntry.SlidingExpiration = TimeSpan.FromHours(1);
-
-                        return new();
-                    });
-
-            return cachedValue ?? new();
-        }
-    }
+    private readonly ConcurrentDictionary<string, List<Link>> authors = new();
 
     #endregion Fields
 
@@ -102,12 +51,18 @@ public class SimpleRedditRepository : IPostRepository
 
         foreach (var post in posts)
         {
-            if (this.Posts.TryAdd(post.Name, post))
+            if (this.posts.TryAdd(post.Name, post))
             {                
-                this.Authors.AddOrUpdate(post.AuthorName, 1, (_, old) => ++old);
+                if (this.authors.TryGetValue(post.AuthorName, out var authorPosts))
+                {
+                    authorPosts.Add(post);
+                }
+                else
+                {
+                    this.authors
+                        .TryAdd(post.AuthorName, new List<Link> { post });
+                }
             }
-
-            this.PostUps.AddOrUpdate(post.Name, post.Ups, (_, _) => post.Ups);
         }
 
         return Task.CompletedTask;
@@ -118,46 +73,116 @@ public class SimpleRedditRepository : IPostRepository
         this.logger.LogInformation(CommonLogMessages.Disposing, nameof(SimpleRedditRepository));
 
         this.cancellationTokenSource.Cancel();
-        this.Posts.Clear();
-        this.PostUps.Clear();
-        this.Authors.Clear();
+        this.posts.Clear();
+        this.authors.Clear();
         this.memoryCache.Dispose();
 
         GC.SuppressFinalize(this);
     }
 
-    public Task<List<Link>> GetAllPostsAsync(Pagination pagination) =>
-        Task.FromResult(this.Posts
+    public Task<List<Link>> GetAllPostsAsync(string? subreddit, Pagination pagination)
+    {
+        var posts = this.posts
             .Values
-            .AsEnumerable()
+            .AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(subreddit))
+        {
+            posts = posts
+                .Where(post => string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        return Task.FromResult(posts
             .Skip(pagination.PageSize * (pagination.Page - 1))
             .Take(pagination.PageSize)
             .ToList());
+    }        
 
-    public Task<List<KeyValuePair<string, int>>> GetAllAuthors(Pagination pagination) =>
-        Task.FromResult(this.Authors
-            .AsEnumerable()
+    public Task<IEnumerable<KeyValuePair<string, List<Link>>>> GetAllAuthorsAsync(string? subreddit, Pagination pagination)
+    {
+        var authors = this.authors
+            .Values
+            .AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(subreddit))
+        {
+            authors = authors
+                .Where(posts => posts
+                    .Any(post => string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase)));
+        }
+
+        return Task.FromResult(this.authors
             .Skip(pagination.PageSize * (pagination.Page - 1))
-            .Take(pagination.PageSize)
-            .ToList());
+            .Take(pagination.PageSize));
+    }
 
-    public Task<long> GetPostsCountAsync() =>
-        Task.FromResult((long)this.Posts.Count);
+    public Task<long> GetPostsCountAsync(string? subreddit)
+    {
+        if (string.IsNullOrWhiteSpace(subreddit))
+        {
+            return Task.FromResult((long)this.posts.Count);
+        }
 
-    public Task<long> GetAuthorsCountAsync() =>
-        Task.FromResult((long)this.Authors.Count);
+        var posts = this.posts
+            .Values
+            .AsEnumerable();
 
-    public Task<IEnumerable<KeyValuePair<string, int>>> GetTopAuthors(int top = 10) =>
-        Task.FromResult(this.Authors
+        return Task.FromResult(
+            (long)posts
+                .Where(post => string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase))
+                .Count());
+    }
+
+    public Task<long> GetAuthorsCountAsync(string? subreddit)
+    {
+        if (string.IsNullOrWhiteSpace(subreddit))
+        {
+            return Task.FromResult((long)this.authors.Count);
+        }
+
+        var authors = this.authors
+            .Values
+            .AsEnumerable();
+
+        return Task.FromResult(
+            (long)authors
+                .Where(posts => posts
+                    .Any(post => string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase)))
+                .Count());
+    }
+    public Task<IEnumerable<KeyValuePair<string, int>>> GetTopPosts(string? subreddit, int top = 10)
+    {
+        var filteredPosts = string.IsNullOrWhiteSpace(subreddit)
+            ? this.posts
+                .Select(post => new KeyValuePair<string, int>(post.Key, post.Value.Ups))
+            : this.posts
+                .Where(post => string.Equals(post.Value.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase))
+                .Select(post => new KeyValuePair<string, int>(post.Key, post.Value.Ups));
+
+        return Task.FromResult(filteredPosts
+            .OrderByDescending(post => post.Value)
+            .ThenBy(post => post.Key)
+            .Take(top));
+    }
+
+    public Task<IEnumerable<KeyValuePair<string, int>>> GetTopAuthors(string? subreddit, int top = 10)
+    {
+        var filteredAuthors = string.IsNullOrEmpty(subreddit)
+            ? this.authors
+                .Select(author => new KeyValuePair<string, int>(author.Key, author.Value.Count))
+            : this.authors
+                .Select(author =>
+                    new KeyValuePair<string, int>(
+                        author.Key,
+                        author.Value
+                            .Where(link => string.Equals(link.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase))
+                            .Count()));
+
+        return Task.FromResult(filteredAuthors
             .OrderByDescending(author => author.Value)
             .ThenBy(author => author.Key)
             .Take(top));
-
-    public Task<IEnumerable<KeyValuePair<string, int>>> GetTopPosts(int top = 10) =>
-        Task.FromResult(this.PostUps
-            .OrderByDescending(upvote => upvote.Value)
-            .ThenBy(upvote => upvote.Key)
-            .Take(top));
+    }
 
     private void HeartbeatThread(CancellationToken cancellationToken)
     {
@@ -168,8 +193,8 @@ public class SimpleRedditRepository : IPostRepository
             this.logger.LogInformation(
                 ApplicationStatusMessages.PostsCount,
                 nameof(SimpleRedditRepository),
-                this.Posts.Count,
-                this.Authors.Count);
+                this.posts.Count,
+                this.authors.Count);
         }
     }
 }

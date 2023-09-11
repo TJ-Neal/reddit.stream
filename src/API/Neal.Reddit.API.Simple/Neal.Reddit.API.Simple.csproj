@@ -1,12 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Configurations>Debug;Release</Configurations>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
@@ -19,9 +19,28 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\Neal.Reddit.Infrastructure.Simple.Repository\Neal.Reddit.Infrastructure.Simple.Repository.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Application\Neal.Reddit.Application\Neal.Reddit.Application.csproj" />
+        <ProjectReference Include="..\..\Infrastructure\Neal.Reddit.Infrastructure.Simple.Repository\Neal.Reddit.Infrastructure.Simple.Repository.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Remove="appsettings.Debug.json" />
+        <Content Remove="appsettings.Release.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="appsettings.Debug.json">
+            <IsTransformFile>true</IsTransformFile>
+            <DependentUpon>appsettings.json</DependentUpon>
+        </None>
+        <None Update="appsettings.json">
+            <TransformOnBuild>true</TransformOnBuild>
+        </None>
+        <None Update="appsettings.Release.json">
+            <IsTransformFile>true</IsTransformFile>
+            <DependentUpon>appsettings.json</DependentUpon>
+        </None>
+    </ItemGroup>
 
 </Project>

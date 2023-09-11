@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
+﻿using Microsoft.AspNetCore.Mvc;
 using Neal.Reddit.Application.Constants.Api;
+using Neal.Reddit.Application.Interfaces.RedditRepository;
+using Neal.Reddit.Core.Entities.Configuration;
+using Neal.Reddit.Core.Entities.Reddit;
 
 namespace Neal.Reddit.API.Simple.Endpoints;
 
@@ -17,24 +17,73 @@ public static class RepositoryEndpoints
         var group = routes.MapGroup(ApiStrings.BaseRoute)
             .WithTags(groupTag);
 
-        //group.MapGet(ApiStrings.TweetsRoute,
-        //        ([FromServices] ITweetRepository model, [FromQuery] int? page, [FromQuery] int? pageSize) => model.GetAllTweetsAsync(new Pagination(page, pageSize)))
-        //    .WithName(ApiStrings.GetTweetsName)
-        //    .WithDescription(ApiStrings.GetTweetsDescription)
-        //    .WithOpenApi();
+        group.MapGet(
+                ApiStrings.GetPostsRoute,
+                (
+                    [FromServices] IPostRepository model,
+                    [FromQuery] string? subreddit,
+                    [FromQuery] int? page, 
+                    [FromQuery] int? pageSize) => model.GetAllPostsAsync(subreddit, new Pagination(page, pageSize)))
+            .WithName(ApiStrings.GetPostsName)
+            .WithDescription(ApiStrings.GetPostsDescription)
+            .WithOpenApi();
 
-        //group.MapPost(ApiStrings.TweetsRoute, ([FromServices] ITweetRepository model, [FromBody] List<TweetDto> tweets) => model.AddRecordsAsync(tweets))
-        //    .WithName(ApiStrings.PostTweetsName)
-        //    .WithDescription(ApiStrings.PostTweetsDescription);
+        group.MapGet(
+                ApiStrings.GetAuthorsRoute,
+                (
+                    [FromServices] IPostRepository model,
+                    [FromQuery] string? subreddit,
+                    [FromQuery] int? page,
+                    [FromQuery] int? pageSize) => model.GetAllAuthorsAsync(subreddit, new Pagination(page, pageSize)))
+            .WithName(ApiStrings.GetAuthorsName)
+            .WithDescription(ApiStrings.GetAuthorsDescription)
+            .WithOpenApi();
 
-        //group.MapGet(ApiStrings.CountRoute, ([FromServices] ITweetRepository model) => model.GetCountAsync())
-        //    .WithName(ApiStrings.GetCountName)
-        //    .WithDescription(ApiStrings.GetCountDescription)
-        //    .WithOpenApi();
+        group.MapGet(
+                ApiStrings.PostsCountRoute,
+                (
+                    [FromServices] IPostRepository model,
+                    [FromQuery] string? subreddit) => model.GetPostsCountAsync(subreddit))
+            .WithName(ApiStrings.PostsCountName)
+            .WithDescription(ApiStrings.PostsCountDescription)
+            .WithOpenApi();
 
-        //group.MapGet(ApiStrings.HashtagsRoute, ([FromServices] ITweetRepository model, [FromQuery] int? top) => model.GetTopHashtags(top ?? 10))
-        //    .WithName(ApiStrings.GetHashtagsName)
-        //    .WithDescription(ApiStrings.GetHashtagsDescription)
-        //    .WithOpenApi();
+        group.MapGet(
+                ApiStrings.AuthorsCountRoute,
+                (
+                    [FromServices] IPostRepository model,
+                    [FromQuery] string? subreddit) => model.GetAuthorsCountAsync(subreddit))
+            .WithName(ApiStrings.AuthorsCountName)
+            .WithDescription(ApiStrings.AuthorsCountDescription)
+            .WithOpenApi();
+
+        group.MapGet(
+                ApiStrings.TopPostsRoute,
+                (
+                    [FromServices] IPostRepository model,
+                    [FromQuery] string? subreddit, 
+                    [FromQuery] int? top) => model.GetTopPosts(subreddit, top ?? 10))
+            .WithName(ApiStrings.TopPostsName)
+            .WithDescription(ApiStrings.TopPostsDescription)
+            .WithOpenApi();
+
+        group.MapGet(
+                ApiStrings.TopAuthorsRoute,
+                (
+                    [FromServices] IPostRepository model,
+                    [FromQuery] string? subreddit, 
+                    [FromQuery] int? top) => model.GetTopAuthors(subreddit, top ?? 10))
+            .WithName(ApiStrings.TopAuthorsName)
+            .WithDescription(ApiStrings.TopAuthorsDescription)
+            .WithOpenApi();
+
+        group.MapPost(
+            ApiStrings.AddPostsRoute, 
+            (
+                [FromServices] IPostRepository model,
+                [FromBody] List<Link> posts) => model.AddPostsAsync(posts))
+            .WithName(ApiStrings.AddPostsName)
+            .WithDescription(ApiStrings.AddPostsDescription)
+            .WithOpenApi();
     }
 }

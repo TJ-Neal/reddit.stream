@@ -7,6 +7,7 @@ using Neal.Reddit.Application.Constants.Messages;
 using Neal.Reddit.Client;
 using Neal.Reddit.Client.Interfaces;
 using Neal.Reddit.Client.Models;
+using Neal.Reddit.Client.Simple.Extensions;
 using Neal.Reddit.Core.Entities.Configuration;
 using Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
 using RestSharp.Authenticators;
@@ -42,6 +43,13 @@ try
         .GetSection(nameof(Credentials))
         ?.Get<Credentials>()
             ?? new();
+    var simpleConfiguration = configuration
+        .GetSection(nameof(SimpleConfiguration))
+        .Get<SimpleConfiguration>()
+            ?? new SimpleConfiguration();
+
+    // Output the enabled state of services
+    Log.Information($"Simple client enabled [{simpleConfiguration.Enabled}]");
 
     var authenticator = new RedditAuthenticator(inMemoryCredentialStore);
 
@@ -65,6 +73,7 @@ try
             services
                 .AddSingleton<IAuthenticator>(authenticator)
                 .AddSingleton(typeof(IRedditClient), typeof(RedditClient))
+                .AddSimpleRepositoryHandlerIfEnabled(simpleConfiguration)
                 .AddHostedService<RedditReaderService>();
         })
         .UseSerilog()

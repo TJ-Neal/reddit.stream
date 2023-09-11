@@ -7,17 +7,12 @@ public class SubredditConfiguration
 {
     public string Name { get; set; } = string.Empty;
 
-    public Sorts Sort { get; set; } = Sorts.New;
-
     public int PerRequestLimit { get; set; } = Defaults.PerRequestMaxPosts;
 
     public MonitorTypes MonitorType { get; set; } = MonitorTypes.None;
 
-    public bool ShouldMonitor
-    {
-        get => this.MonitorType
-            is MonitorTypes.AfterStartOnly or MonitorTypes.All;
-    }
+    public bool ShouldMonitor => 
+        this.MonitorType is MonitorTypes.AfterStartOnly or MonitorTypes.All;
 
     public SubredditConfiguration() { }
 
