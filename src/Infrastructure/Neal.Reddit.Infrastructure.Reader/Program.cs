@@ -1,10 +1,15 @@
-﻿using Confluent.Kafka;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Neal.Reddit.Application.Constants.Messages;
-using Neal.Reddit.Infrastructure.Reader.Services.RedditApi.V1;
+using Neal.Reddit.Client;
+using Neal.Reddit.Client.Interfaces;
+using Neal.Reddit.Client.Models;
+using Neal.Reddit.Client.Simple.Extensions;
+using Neal.Reddit.Core.Entities.Configuration;
+using Neal.Reddit.Infrastructure.Reader.Services.RedditApi;
+using RestSharp.Authenticators;
 
 // Define thread to periodically send log messages for heartbeats
 var heartbeatThread = new Thread(new ThreadStart(() =>
@@ -27,10 +32,25 @@ try
 
     // Attach Serilog logger
     Log.Logger = new LoggerConfiguration()
-        .ReadFrom.Configuration(configuration)
+        .ReadFrom
+        .Configuration(configuration)
         .CreateLogger();
 
     Log.Information(ApplicationStatusMessages.Started);
+
+    var inMemoryCredentialStore = configuration
+        .GetSection(nameof(Credentials))
+        ?.Get<Credentials>()
+            ?? new();
+    var simpleConfiguration = configuration
+        .GetSection(nameof(SimpleConfiguration))
+        .Get<SimpleConfiguration>()
+            ?? new SimpleConfiguration();
+
+    // Output the enabled state of services
+    Log.Information($"Simple client enabled [{simpleConfiguration.Enabled}]");
+
+    var authenticator = new RedditAuthenticator(inMemoryCredentialStore);
 
     // Configure and build Host Service
     var host = Host.CreateDefaultBuilder(args)
@@ -47,8 +67,13 @@ try
                 {
                     options.ClearProviders();
                     options.AddSerilog(dispose: true);
-                })
-                .AddKafkaClient();
+                });
+
+            services
+                .AddSingleton<IAuthenticator>(authenticator)
+                .AddSingleton(typeof(IRedditClient), typeof(RedditClient))
+                .AddSimpleRepositoryHandlerIfEnabled(simpleConfiguration)
+                .AddHostedService<RedditReaderService>();
         })
         .UseSerilog()
         .Build();
