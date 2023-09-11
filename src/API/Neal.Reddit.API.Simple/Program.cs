@@ -79,7 +79,11 @@ try
         })
         .UseRouting()
         .UseEndpoints(configuration =>
-            configuration.MapRepositoryEndpoints(Names.SimpleApi));
+        {
+            configuration.MapRepositoryPostsEndpoints(Names.SimpleApiPosts);
+            configuration.MapRepositoryAuthorEndpoints(Names.SimpleApiAuthors);
+        });           
+                
 
     await app.RunAsync();
 }

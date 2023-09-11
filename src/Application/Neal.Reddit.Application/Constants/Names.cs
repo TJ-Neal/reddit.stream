@@ -7,5 +7,7 @@ public struct Names
 {
     public const string KafkaApi = "Kafka.Reddit.Api";
 
-    public const string SimpleApi = "Simple.Api";
+    public const string SimpleApiPosts = "Simple.Api.Posts";
+
+    public const string SimpleApiAuthors = "Simple.Api.Authors";
 }
