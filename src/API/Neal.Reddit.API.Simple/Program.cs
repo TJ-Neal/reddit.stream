@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Neal.Reddit.API.Simple.Endpoints;
 using Neal.Reddit.Application.Constants;
 using Neal.Reddit.Application.Constants.Messages;

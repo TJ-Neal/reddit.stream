@@ -82,72 +82,114 @@ public class SimpleRedditRepository : IPostRepository
     }
 
     public async Task<IEnumerable<Link>> GetAllPostsAsync(string? subreddit, Pagination pagination) =>
-        (await this.GetCachedPostsAsync(subreddit))
+        (await this.GetOrCreateCachedPostsAsync(subreddit))
+            ?.ToList()
             .Skip(pagination.PageSize * (pagination.Page - 1))
-            .Take(pagination.PageSize);
+            .Take(pagination.PageSize)
+                ?? Enumerable.Empty<Link>();
 
     public async Task<IEnumerable<Author>> GetAllAuthorsAsync(string? subreddit, Pagination pagination) =>
-        (await this.GetCachedAuthorsAsync(subreddit))
+        (await this.GetOrCreateCachedAuthorsAsync(subreddit))
+            ?.ToList()
             .Skip(pagination.PageSize * (pagination.Page - 1))
-            .Take(pagination.PageSize);
+            .Take(pagination.PageSize)
+                ?? Enumerable.Empty<Author>();
 
     public async Task<long> GetPostsCountAsync(string? subreddit) =>
-        (await this.GetCachedPostsAsync(subreddit))
-            .Where(post => string.IsNullOrWhiteSpace(subreddit)
-                || string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase))
-            .Count();
+        (await this.GetOrCreateCachedPostsAsync(subreddit))?.ToList().Count ?? 0;
 
     public async Task<long> GetAuthorsCountAsync(string? subreddit) =>
-        (await this.GetCachedAuthorsAsync(subreddit))
-            .Where(author => author.Posts
-                .Any(post => string.IsNullOrWhiteSpace(subreddit)
-                    || string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase)))
-            .Count();
+        (await this.GetOrCreateCachedAuthorsAsync(subreddit))?.ToList().Count ?? 0;
 
     public async Task<IEnumerable<Link>> GetTopPostsByUpvotesAsync(string? subreddit, int top = 10) =>
-        (await this.GetCachedPostsAsync(subreddit))
-            .OrderByDescending(post => post.Ups)
-            .ThenBy(post => post.Name)
-            .Take(top);
+        (await this.GetOrCreateFilteredCacheAsync(
+            $"{CacheKeys.CacheRoot}-{CacheKeys.Posts}-{subreddit}-{CacheKeys.UpvotesSorted}",
+            this.GetOrCreateCachedPostsSortedByUpvotesAsync,
+            subreddit))
+            ?.AsEnumerable()
+            .Take(top)
+                ?? Enumerable.Empty<Link>();
 
     public async Task<IEnumerable<Link>> GetTopPostsByCommentsAsync(string? subreddit, int top = 10) =>
-        (await this.GetCachedPostsAsync(subreddit))
-            .OrderByDescending(post => post.CommentCount)
-            .ThenBy(post => post.Name)
-            .Take(top);
+        (await this.GetOrCreateFilteredCacheAsync(
+            $"{CacheKeys.CacheRoot}-{CacheKeys.Posts}-{subreddit}-{CacheKeys.CommentsSorted}",
+            this.GetOrCreateCachedPostsSortedByCommentsAsync,
+            subreddit))
+            ?.AsEnumerable()
+            .Take(top)
+                ?? Enumerable.Empty<Link>();
 
     public async Task<IEnumerable<Link>> GetLowestPostsByUpvoteRatioAsync(string? subreddit, int top = 10) =>
-        (await this.GetCachedPostsAsync(subreddit))
-            .Where(post => post.Score > 0 || post.Downs > 0)
+        (await this.GetOrCreateFilteredCacheAsync(
+            $"{CacheKeys.CacheRoot}-{CacheKeys.Posts}-{subreddit}-{CacheKeys.RatioSorted}",
+            this.GetOrCreateCachedPostsSortedByUpvoteRatio,
+            subreddit))
+            ?.AsEnumerable()
+            .Take(top)
+                ?? Enumerable.Empty<Link>();
+
+    public async Task<IEnumerable<Author>> GetTopAuthors(string? subreddit, int top = 10) =>
+        (await this.GetOrCreateFilteredCacheAsync(
+            $"{CacheKeys.CacheRoot}-{CacheKeys.Posts}-{subreddit}-{CacheKeys.PostsSorted}",
+            this.GetOrCreateCachedAuthorsSortedByPosts,
+            subreddit))
+            ?.AsEnumerable()
+            .Take(top)
+                ?? Enumerable.Empty<Author>();
+
+    private async Task<IEnumerable<Link>?> GetOrCreateCachedPostsSortedByUpvotesAsync(string? subreddit) =>
+        (await this.GetOrCreateCachedPostsAsync(subreddit))
+            ?.OrderByDescending(post => post.Ups)
+            .ThenBy(post => post.UpvoteRatio)
+            .ThenBy(post => post.Name)
+            .AsEnumerable();
+
+    private async Task<IEnumerable<Link>?> GetOrCreateCachedPostsSortedByCommentsAsync(string? subreddit) =>
+        (await this.GetOrCreateCachedPostsAsync(subreddit))
+            ?.OrderByDescending(post => post.CommentCount)
+            .ThenBy(post => post.Name)
+            .AsEnumerable();
+
+    private async Task<IEnumerable<Link>?> GetOrCreateCachedPostsSortedByUpvoteRatio(string? subreddit) =>
+        (await this.GetOrCreateCachedPostsAsync(subreddit))
+            ?.Where(post => post.Score > 0 || post.Downs > 0)
             .OrderBy(post => post.UpvoteRatio)
             .ThenBy(post => post.Score)
             .ThenBy(post => post.Name)
-            .Take(top);
+            .AsEnumerable();
 
-    public async Task<IEnumerable<Author>> GetTopAuthors(string? subreddit, int top = 10) =>
-        (await this.GetCachedAuthorsAsync(subreddit))
-            .OrderByDescending(author => author.Posts.Count())
+    private async Task<IEnumerable<Author>?> GetOrCreateCachedAuthorsSortedByPosts(string? subreddit) =>
+        (await this.GetOrCreateCachedAuthorsAsync(subreddit))
+            ?.OrderByDescending(author => author.Posts.Count())
             .ThenBy(author => author.Name)
-            .Take(top);
+            .AsEnumerable();
 
-    private async Task<List<Link>> GetCachedPostsAsync(string? subreddit) =>
-        (await this.GetOrCreateFilteredCacheAsync(
+    private async Task<IEnumerable<Link>?> GetOrCreateCachedPostsAsync(string? subreddit) =>
+        await this.GetOrCreateFilteredCacheAsync(
             $"{CacheKeys.CacheRoot}-{CacheKeys.Posts}-{subreddit}",
-            GetPostsBySubreddit,
-            subreddit))
-                ?? new();
+            this.GetPostsBySubreddit,
+            subreddit);
 
-    private async Task<List<Author>> GetCachedAuthorsAsync(string? subreddit) =>
-        (await this.GetOrCreateFilteredCacheAsync(
+    private async Task<IEnumerable<Author>?> GetOrCreateCachedAuthorsAsync(string? subreddit) =>
+        await this.GetOrCreateFilteredCacheAsync(
             $"{CacheKeys.CacheRoot}-{CacheKeys.Authors}-{subreddit}",
-            GetAuthorsBySubreddit,
-            subreddit))
-                ?? new();
+            this.GetAuthorsBySubreddit,
+            subreddit);
+
+    private Task<IEnumerable<Link>> GetPostsBySubreddit(string? subreddit) =>
+        Task.FromResult(
+            this.posts
+                .Select(post => post.Value)
+                .Where(post =>
+                    string.IsNullOrWhiteSpace(subreddit)
+                        || string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase))
+                .OrderBy(post => post.Name)
+                .AsEnumerable());
 
     private async Task<TResult?> GetOrCreateFilteredCacheAsync<TResult, TFilter>(
-        string cacheKey, 
-        Func<TFilter, Task<TResult>> newValue, 
-        TFilter filter) where TResult : class =>
+        string cacheKey,
+        Func<TFilter, Task<TResult>> newValue,
+        TFilter filter) where TResult : class? =>
         await this.memoryCache.GetOrCreateAsync(
             cacheKey,
             async cacheEntry =>
@@ -157,31 +199,19 @@ public class SimpleRedditRepository : IPostRepository
                 return await newValue(filter);
             });
 
-    private Task<List<Link>> GetPostsBySubreddit(string? subreddit) =>
-        Task.FromResult(
-            (string.IsNullOrWhiteSpace(subreddit)
-                ? this.posts.Values
-                : this.posts
-                    .Where(post => string.Equals(post.Value.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase))
-                    .Select(post => post.Value))
-            .OrderBy(post => post.Name)
-            .ToList());
-
-    private Task<List<Author>> GetAuthorsBySubreddit(string? subreddit) =>
-        Task.FromResult(
-            (string.IsNullOrEmpty(subreddit)
-                ? this.authors
-                    .Select(author => new Author() { Name = author.Key, Posts = author.Value })
-                : this.authors
-                    .Select(author =>
-                        new Author()
-                        {
-                            Name = author.Key,
-                            Posts = author.Value
-                                .Where(link => string.Equals(link.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase)),
-                        }))
+    private Task<IEnumerable<Author>> GetAuthorsBySubreddit(string? subreddit) =>
+        Task.FromResult(this.authors
+            .Select(author =>
+                new Author()
+                {
+                    Name = author.Key,
+                    Posts = author.Value
+                        .Where(post => string.IsNullOrWhiteSpace(subreddit) 
+                            || string.Equals(post.Subreddit, subreddit, StringComparison.InvariantCultureIgnoreCase)),
+                })
+            .Where(author => author.Posts.Any())
             .OrderBy(auth => auth.Name)
-            .ToList());
+            .AsEnumerable());
 
     private void HeartbeatThread(CancellationToken cancellationToken)
     {
