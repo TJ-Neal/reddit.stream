@@ -34,7 +34,7 @@ public class RedditClient : IRedditClient, IDisposable
 
     private readonly long startEpochSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-    private readonly ConcurrentDictionary<string, int> watchedPosts = new();
+    private readonly ConcurrentDictionary<string, double> watchedPosts = new();
 
     private RateLimiter? rateLimiter;
 
@@ -147,23 +147,24 @@ public class RedditClient : IRedditClient, IDisposable
                 }
                 else if (post.Data is not null)
                 {
-                    var shouldUpdate = this.watchedPosts.TryGetValue(post.Data.Name, out var upvotes)
-                        ? upvotes < post.Data.Ups
+                    var currentOverallScore = post.Data.Ups + post.Data.UpvoteRatio;
+                    var shouldUpdate = this.watchedPosts.TryGetValue(post.Data.Name, out var overallScore)
+                        ? overallScore < currentOverallScore
                         : this.watchedPosts.TryAdd(post.Data.Name, post.Data.Ups);
 
                     if (shouldUpdate)
                     {
                         this.logger.LogInformation(
-                            "Post added or updated [{postName}] in [{subreddit}] [old {upvotes}] [new {newUpvotes}] [{posted}]",
+                            "Post added or updated [{postName}] in [{subreddit}] [old {overallScore}] [new {currentOverallScore}] [{posted}]",
                             post.Data.Name,
                             postRequest.Name,
-                            upvotes,
-                            post.Data.Ups,
+                            overallScore,
+                            currentOverallScore,
                             DateTimeOffset.FromUnixTimeSeconds((long)post.Data.CreatedUtcEpoch));
 
                         updates++;
 
-                        this.watchedPosts[post.Data.Name] = post.Data.Ups;
+                        this.watchedPosts[post.Data.Name] = currentOverallScore;
 
                         await postRequest.PostHandler(post.Data, cancellationToken);
                     }
